@@ -30,7 +30,18 @@ export default function LandingPage() {
       { name: "Domingos", amount: "280.000" },
       { name: "Teresa", amount: "65.000" },
       { name: "Paulo", amount: "500.000" },
-      { name: "Rosa", amount: "180.000" }
+      { name: "Rosa", amount: "180.000" },
+
+      { name: "Carlos", amount: "140.000" },
+      { name: "Helena", amount: "75.000" },
+      { name: "Mateus", amount: "260.000" },
+      { name: "Lúcia", amount: "90.000" },
+      { name: "Pedro", amount: "310.000" },
+      { name: "Sofia", amount: "45.000" },
+      { name: "Manuel", amount: "170.000" },
+      { name: "Carla", amount: "230.000" },
+      { name: "Adriano", amount: "120.000" },
+      { name: "Patrícia", amount: "360.000" }
     ];
 
     let timeoutId: NodeJS.Timeout;
@@ -81,8 +92,8 @@ export default function LandingPage() {
             <Link href="#como-funciona" className="btn-ghost" style={{ fontWeight: '600' }}>Como funciona</Link>
             <Link href="#beneficios" className="btn-ghost" style={{ fontWeight: '600' }}>Benefícios</Link>
             <div style={{ display: 'flex', gap: '1rem', marginLeft: '1.5rem' }}>
-              <button className="btn btn-outline" style={{ border: '1px solid #E5E7EB', color: '#374151', padding: '0.6rem 1.8rem', borderRadius: '12px' }}>Entrar</button>
-              <button className="btn btn-primary" style={{ padding: '0.6rem 1.8rem', borderRadius: '12px' }}>Criar conta</button>
+              <Link href="/login" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid #E5E7EB', color: '#374151', padding: '0.6rem 1.8rem', borderRadius: '12px', textDecoration: 'none' }}>Entrar</Link>
+              <Link href="/register" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', padding: '0.6rem 1.8rem', borderRadius: '12px', textDecoration: 'none' }}>Criar conta</Link>
             </div>
           </div>
         </div>
@@ -106,12 +117,12 @@ export default function LandingPage() {
               Aceda a crédito de forma simples, rápida e transparente. Sem burocracia, sem filas. Tudo online e na palma da sua mão.
             </p>
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '5rem' }}>
-              <button className="btn btn-primary" style={{ padding: '1.25rem 2.5rem', fontSize: '1.1rem', borderRadius: '16px' }}>
+              <Link href="/register" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', padding: '1.25rem 2.5rem', fontSize: '1.1rem', borderRadius: '16px', textDecoration: 'none' }}>
                 Começar agora <ArrowRight size={20} />
-              </button>
-              <button className="btn btn-outline" style={{ padding: '1.25rem 2.5rem', fontSize: '1.1rem', borderRadius: '16px', color: '#ea580c', border: '1px solid #ea580c' }}>
+              </Link>
+              <Link href="#como-funciona" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', padding: '1.25rem 2.5rem', fontSize: '1.1rem', borderRadius: '16px', color: '#ea580c', border: '1px solid #ea580c', textDecoration: 'none' }}>
                 <PlayCircle size={20} /> Ver como funciona
-              </button>
+              </Link>
             </div>
 
             {/* Social Proof */}
@@ -264,9 +275,9 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <button className="btn btn-primary" style={{ width: '100%', padding: '1.5rem', fontSize: '1.25rem', borderRadius: '20px' }}>
-                Criar conta e solicitar <ArrowRight size={24} />
-              </button>
+              <Link href="/register" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '1.5rem', fontSize: '1.25rem', borderRadius: '20px', textDecoration: 'none' }}>
+                Criar conta e solicitar <ArrowRight size={24} style={{ marginLeft: '0.5rem' }} />
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -298,7 +309,7 @@ export default function LandingPage() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2.5rem' }}>
-            <MockFeature icon={<Clock size={32} />} title="Aprovação rápida" text="Resposta em até 24 horas após a análise completa." color="#fff7ed" />
+            <MockFeature icon={<Clock size={32} />} title="Aprovação rápida" text="Resposta em menos de 24 horas após a análise completa." color="#fff7ed" />
             <MockFeature icon={<Shield size={32} />} title="100% Seguro" text="Os seus dados estão protegidos com criptografia de ponta." color="#f0fdf4" />
             <MockFeature icon={<Star size={32} />} title="Transparente" text="Sem taxas ocultas. Sabe exatamente quanto vai pagar." color="#fefce8" />
             <MockFeature icon={<Zap size={32} />} title="100% Digital" text="Todo o processo online, sem filas ou burocracia." color="#fef2f2" />

@@ -1,23 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, CreditCard, Users, Briefcase, ChevronRight, CheckCircle2, Shield } from "lucide-react";
+import { Camera, CreditCard, Users, Briefcase, ChevronRight, CheckCircle2, Shield, Mail, Lock, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function RegisterFlow() {
     const [step, setStep] = useState(0);
     const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+        fullName: "",
+        phone: "",
         referralCode: "",
-        biFront: null,
-        biBack: null,
-        selfie: null,
+        biFront: null as string | null,
+        biBack: null as string | null,
+        selfie: null as string | null,
         familyContacts: [
             { name: "", phone: "", relation: "" },
             { name: "", phone: "", relation: "" }
         ],
-        bank: { name: "", iban: "", accountNumber: "" },
-        employment: { company: "", salary: "", years: "" }
+        bank: { name: "", iban: "", accountNumber: "", holder: "" },
+        employment: { company: "", salary: "", years: "", jobTitle: "" }
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const steps = [
         { title: "Referência", icon: <Users size={20} /> },
@@ -28,7 +36,58 @@ export default function RegisterFlow() {
         { title: "Emprego", icon: <Briefcase size={20} /> }
     ];
 
-    const next = () => setStep(step + 1);
+    const router = useRouter();
+
+    const next = async () => {
+        if (step === steps.length - 1) {
+            setLoading(true);
+            setError("");
+
+            try {
+                // 1. Sign Up in Supabase Auth
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: formData.email,
+                    password: formData.password,
+                    options: {
+                        data: {
+                            full_name: formData.fullName,
+                        }
+                    }
+                });
+
+                if (authError) throw authError;
+
+                if (authData.user) {
+                    // 2. Create Profile
+                    const { error: profileError } = await supabase.from('profiles').insert({
+                        id: authData.user.id,
+                        full_name: formData.fullName,
+                        email: formData.email,
+                        phone: formData.phone,
+                        referral_code: `REF-${Math.random().toString(36).substring(7).toUpperCase()}`,
+                        bank_name: formData.bank.name,
+                        iban: formData.bank.iban,
+                        account_number: formData.bank.accountNumber,
+                        account_holder: formData.bank.holder,
+                        company_name: formData.employment.company,
+                        monthly_salary: parseFloat(formData.employment.salary),
+                        service_years: parseInt(formData.employment.years),
+                        job_title: formData.employment.jobTitle,
+                        family_contacts: formData.familyContacts
+                    });
+
+                    if (profileError) throw profileError;
+
+                    router.push('/dashboard');
+                }
+            } catch (err: any) {
+                setError(err.message);
+                setLoading(false);
+            }
+        } else {
+            setStep(step + 1);
+        }
+    };
     const prev = () => setStep(step - 1);
 
     return (
@@ -72,26 +131,60 @@ export default function RegisterFlow() {
                     >
                         {step === 0 && (
                             <div className="step-content">
-                                <h3 style={{ marginBottom: '1.5rem' }}>Código de convite</h3>
-                                <p style={{ color: '#666', marginBottom: '1.5rem' }}>
-                                    O KwanzaCrédito é uma rede exclusiva. Introduza o código de quem o convidou para começar.
-                                </p>
-                                <div style={{ marginBottom: '1.5rem' }}>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Referência</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ex: ABX921"
-                                        style={{
-                                            width: '100%',
-                                            padding: '1rem',
-                                            borderRadius: 'var(--radius)',
-                                            border: '1px solid var(--border)',
-                                            fontSize: '1rem'
-                                        }}
-                                        value={formData.referralCode}
-                                        onChange={(e) => setFormData({ ...formData, referralCode: e.target.value })}
-                                    />
+                                <h3 style={{ marginBottom: '1.5rem' }}>Dados de Acesso</h3>
+                                <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Nome Completo</label>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            placeholder="O seu nome completo"
+                                            value={formData.fullName}
+                                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Telemóvel</label>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            placeholder="9xx xxx xxx"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Email</label>
+                                        <input
+                                            type="email"
+                                            className="input-field"
+                                            placeholder="exemplo@email.com"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Password</label>
+                                        <input
+                                            type="password"
+                                            className="input-field"
+                                            placeholder="Mínimo 6 caracteres"
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Código de referência (Opcional)</label>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            placeholder="Ex: ABX921"
+                                            value={formData.referralCode}
+                                            onChange={(e) => setFormData({ ...formData, referralCode: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
+                                {error && <p style={{ color: 'red', fontSize: '0.875rem', marginTop: '1rem' }}>{error}</p>}
                             </div>
                         )}
 
@@ -206,8 +299,8 @@ export default function RegisterFlow() {
                     {step > 0 && (
                         <button className="btn btn-outline" style={{ flex: 1 }} onClick={prev}>Voltar</button>
                     )}
-                    <button className="btn btn-primary" style={{ flex: 2 }} onClick={next}>
-                        {step === steps.length - 1 ? "Finalizar registo" : "Próximo passo"}
+                    <button className="btn btn-primary" style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={next} disabled={loading}>
+                        {loading ? <Loader2 className="animate-spin" size={20} /> : (step === steps.length - 1 ? "Finalizar registo" : "Próximo passo")}
                     </button>
                 </div>
             </div>
