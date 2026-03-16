@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, FileCheck, Landmark, BarChart3, Settings, LogOut, Check, X, AlertCircle, Shield, Bell, CreditCard, Building2, Gavel, Cpu, Palette, Plus, Trash2, Save, Wand2, Loader2, Upload, UserPlus } from "lucide-react";
+import { Users, FileCheck, Landmark, BarChart3, Settings, LogOut, Check, X, AlertCircle, Shield, Bell, CreditCard, Building2, Gavel, Cpu, Palette, Plus, Trash2, Save, Wand2, Loader2, Upload, UserPlus, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -1040,42 +1040,3 @@ function NotificationConfig({ label, defaultText }: NotificationConfigProps) {
     );
 }
 
-function CheckCircle2(props: React.SVGProps<SVGSVGElement>) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-            <path d="m9 12 2 2 4-4" />
-        </svg>
-    )
-}
-
-function ArrowRight(props: React.SVGProps<SVGSVGElement>) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M5 12h14" />
-            <path d="m12 5 7 7-7 7" />
-        </svg>
-    )
-}
