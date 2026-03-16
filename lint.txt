@@ -1,0 +1,28 @@
+
+C:\Users\Girassol_\Documents\KwanzaCrédito\src\components\AdminDashboard.tsx
+    4:31   warning  'useRef' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+   25:46   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   26:58   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   27:40   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   34:66   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  145:8    warning  React Hook useEffect has a missing dependency: 'router'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  338:76   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  483:89   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                            react/no-unescaped-entities
+  483:100  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                            react/no-unescaped-entities
+  861:76   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  884:87   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  909:60   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  933:56   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  943:51   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  952:53   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  968:30   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  988:28   error    Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+
+C:\Users\Girassol_\Documents\KwanzaCrédito\src\components\RegisterFlow.tsx
+   4:48  warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+   4:84  warning  'Mail' is defined but never used          @typescript-eslint/no-unused-vars
+   4:90  warning  'Lock' is defined but never used          @typescript-eslint/no-unused-vars
+  83:27  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 21 problems (16 errors, 5 warnings)
+

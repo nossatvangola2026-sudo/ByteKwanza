@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, CreditCard, Users, Briefcase, ChevronRight, CheckCircle2, Shield, Mail, Lock, Loader2 } from "lucide-react";
+import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -80,8 +80,8 @@ export default function RegisterFlow() {
 
                     router.push('/dashboard');
                 }
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Ocorreu um erro inesperado");
                 setLoading(false);
             }
         } else {

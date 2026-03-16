@@ -1,9 +1,42 @@
 "use client";
 
 import { Users, FileCheck, Landmark, BarChart3, Settings, LogOut, Check, X, AlertCircle, Shield, Bell, CreditCard, Building2, Gavel, Cpu, Palette, Plus, Trash2, Save, Wand2, Loader2, Upload, UserPlus } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+
+interface UserProfile {
+    role: string;
+    is_super_admin: boolean;
+}
+
+interface User {
+    id: number;
+    realId: string;
+    name: string;
+    email: string;
+    referralCode: string;
+    joined: string;
+    status: string;
+}
+
+interface KycItem {
+    id: number;
+    name: string;
+    date: string;
+    salary: string;
+    risk: string;
+    riskColor: string;
+}
+
+interface CreditRequest {
+    id: string;
+    name: string;
+    date: string;
+    amount: string;
+    status: string;
+}
 
 function generateReferralCode() {
     return 'REF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -22,16 +55,16 @@ export default function AdminDashboard() {
 
     const router = useRouter();
     const [auditLog, setAuditLog] = useState<string[]>([]);
-    const [kycQueue, setKycQueue] = useState<any[]>([]);
-    const [creditRequests, setCreditRequests] = useState<any[]>([]);
-    const [users, setUsers] = useState<any[]>([]);
+    const [kycQueue, setKycQueue] = useState<KycItem[]>([]);
+    const [creditRequests, setCreditRequests] = useState<CreditRequest[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [showAddUserModal, setShowAddUserModal] = useState(false);
     const [savingUser, setSavingUser] = useState(false);
     const [newUserForm, setNewUserForm] = useState({
         fullName: '', email: '', phone: '', bank: '',
         referralCode: generateReferralCode()
     });
-    const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+    const [currentUserProfile, setCurrentUserProfile] = useState<UserProfile | null>(null);
 
     const [rules, setRules] = useState([
         { id: 1, condition: "SE salário < 100.000", action: "ENTÃO crédito máximo = 30.000" },
@@ -142,7 +175,7 @@ export default function AdminDashboard() {
         };
 
         fetchData();
-    }, []);
+    }, [router]);
 
     const handleAction = async (user: string, action: 'approved' | 'rejected', type: 'kyc' | 'credit') => {
         setAuditLog(prev => [...prev, `${type.toUpperCase()}: ${user} foi ${action === 'approved' ? 'aprovado' : 'rejeitado'}`]);
@@ -335,8 +368,9 @@ export default function AdminDashboard() {
                                                 const input = document.createElement('input');
                                                 input.type = 'file';
                                                 input.accept = '.csv,.xlsx,.xls';
-                                                input.onchange = async (e: any) => {
-                                                    const file = e.target.files[0];
+                                                input.onchange = async (e: Event) => {
+                                                    const target = e.target as HTMLInputElement;
+                                                    const file = target.files?.[0];
                                                     if (!file) return;
                                                     const text = await file.text();
                                                     const lines = text.split('\n').filter((l: string) => l.trim());
@@ -480,7 +514,7 @@ export default function AdminDashboard() {
                                         {rules.length === 0 && (
                                             <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
                                                 <Cpu size={48} style={{ marginBottom: '1rem', opacity: 0.3 }} />
-                                                <p>Nenhuma regra configurada. Clique em "Nova Regra" para começar.</p>
+                                                <p>Nenhuma regra configurada. Clique em &quot;Nova Regra&quot; para começar.</p>
                                             </div>
                                         )}
                                     </div>
@@ -858,7 +892,15 @@ export default function AdminDashboard() {
 }
 
 
-function AdminSidebarItem({ icon, label, active = false, color, onClick }: any) {
+interface AdminSidebarItemProps {
+    icon: React.ReactNode;
+    label: string;
+    active?: boolean;
+    color?: string;
+    onClick: () => void;
+}
+
+function AdminSidebarItem({ icon, label, active = false, color, onClick }: AdminSidebarItemProps) {
     return (
         <div
             onClick={onClick}
@@ -881,7 +923,17 @@ function AdminSidebarItem({ icon, label, active = false, color, onClick }: any) 
     );
 }
 
-function AdminActionRow({ name, date, salary, risk, riskColor, onApprove, onReject }: any) {
+interface AdminActionRowProps {
+    name: string;
+    date: string;
+    salary: string;
+    risk: string;
+    riskColor: string;
+    onApprove: () => void;
+    onReject: () => void;
+}
+
+function AdminActionRow({ name, date, salary, risk, riskColor, onApprove, onReject }: AdminActionRowProps) {
     return (
         <tr style={{ borderBottom: '1px solid var(--border)', background: 'white', fontSize: '0.875rem' }}>
             <td style={{ padding: '1.25rem 1.5rem', fontWeight: 'bold' }}>{name}</td>
@@ -906,7 +958,14 @@ function AdminActionRow({ name, date, salary, risk, riskColor, onApprove, onReje
     );
 }
 
-function SettingsSubItem({ label, active, onClick, icon }: any) {
+interface SettingsSubItemProps {
+    label: string;
+    active: boolean;
+    onClick: () => void;
+    icon: React.ReactNode;
+}
+
+function SettingsSubItem({ label, active, onClick, icon }: SettingsSubItemProps) {
     return (
         <div
             onClick={onClick}
@@ -930,7 +989,13 @@ function SettingsSubItem({ label, active, onClick, icon }: any) {
     );
 }
 
-function InputGroup({ label, subLabel, defaultValue }: any) {
+interface InputGroupProps {
+    label: string;
+    subLabel?: string;
+    defaultValue: string;
+}
+
+function InputGroup({ label, subLabel, defaultValue }: InputGroupProps) {
     return (
         <div>
             <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem' }}>{label}</label>
@@ -940,7 +1005,12 @@ function InputGroup({ label, subLabel, defaultValue }: any) {
     );
 }
 
-function CheckboxItem({ label, checked = false }: any) {
+interface CheckboxItemProps {
+    label: string;
+    checked?: boolean;
+}
+
+function CheckboxItem({ label, checked = false }: CheckboxItemProps) {
     return (
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input type="checkbox" defaultChecked={checked} />
@@ -949,7 +1019,12 @@ function CheckboxItem({ label, checked = false }: any) {
     );
 }
 
-function NotificationConfig({ label, defaultText }: any) {
+interface NotificationConfigProps {
+    label: string;
+    defaultText: string;
+}
+
+function NotificationConfig({ label, defaultText }: NotificationConfigProps) {
     return (
         <div style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -965,7 +1040,7 @@ function NotificationConfig({ label, defaultText }: any) {
     );
 }
 
-function CheckCircle2(props: any) {
+function CheckCircle2(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}
@@ -985,7 +1060,7 @@ function CheckCircle2(props: any) {
     )
 }
 
-function ArrowRight(props: any) {
+function ArrowRight(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}
