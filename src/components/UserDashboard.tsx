@@ -35,6 +35,12 @@ export default function UserDashboard() {
                 .select('*')
                 .eq('id', user.id)
                 .single();
+            
+            if (profileData?.role === 'admin') {
+                router.push('/admin');
+                return;
+            }
+
             setProfile(profileData);
 
             // Check if profile needs mandatory update (admin-created user)
@@ -47,7 +53,7 @@ export default function UserDashboard() {
                     address: profileData.address || '',
                     emergencyContact: profileData.emergency_contact_name || '',
                     emergencyPhone: profileData.emergency_contact_phone || '',
-                    monthlySalary: profileData.monthly_salary ? String(profileData.monthly_salary) : ''
+                    monthlySalary: profileData.monthly_salary ? String(profileData.monthly_salary) : '0'
                 });
                 setShowProfileUpdate(true);
             }
@@ -106,7 +112,7 @@ export default function UserDashboard() {
     }
 
     const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Utilizador';
-    const initials = displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+    const initials = displayName ? displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U';
 
     // Calculate stats from real data
     const totalDebt = credits
@@ -133,7 +139,7 @@ export default function UserDashboard() {
             address: profileForm.address || null,
             emergency_contact_name: profileForm.emergencyContact || null,
             emergency_contact_phone: profileForm.emergencyPhone || null,
-            monthly_salary: parseFloat(profileForm.monthlySalary),
+            monthly_salary: parseFloat(profileForm.monthlySalary) || 0,
             profile_status: 'active',
             kyc_status: 'pending'
         }).eq('id', user.id);

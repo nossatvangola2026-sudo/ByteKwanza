@@ -38,7 +38,53 @@ export default function RegisterFlow() {
 
     const router = useRouter();
 
+    const validateStep = () => {
+        setError("");
+        
+        switch (step) {
+            case 0:
+                if (!formData.fullName || formData.fullName.length < 3) return "Nome completo deve ter pelo menos 3 caracteres.";
+                if (!formData.phone || !/^[9][0-9]{8}$/.test(formData.phone)) return "Telemóvel deve ter 9 dígitos e começar por 9.";
+                if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return "Formato de email inválido.";
+                if (!formData.password || formData.password.length < 6) return "Password deve ter pelo menos 6 caracteres.";
+                break;
+            case 1:
+                return null; // File validation will be done when files are selected
+            case 2:
+                // Selfie validation logic
+                break;
+            case 3:
+                for (let i = 0; i < 2; i++) {
+                    const c = formData.familyContacts[i];
+                    if (!c.name || c.name.length < 3) return `Nome do Familiar ${i + 1} é obrigatório.`;
+                    if (!c.phone || !/^[9][0-9]{8}$/.test(c.phone)) return `Telemóvel do Familiar ${i + 1} inválido (9 dígitos).`;
+                    if (!c.relation) return `Grau de parentesco do Familiar ${i + 1} é obrigatório.`;
+                }
+                break;
+            case 4:
+                if (!formData.bank.name) return "Selecione o seu banco.";
+                const ibanClean = formData.bank.iban.replace(/\s/g, "");
+                if (ibanClean.length !== 25 || !ibanClean.startsWith("AO06")) return "IBAN inválido. Deve ter 25 caracteres e começar por AO06.";
+                if (!formData.bank.accountNumber) return "Número de conta é obrigatório.";
+                if (!formData.bank.holder) return "Titular da conta é obrigatório.";
+                break;
+            case 5:
+                if (!formData.employment.company) return "Empresa é obrigatória.";
+                if (!formData.employment.salary || parseFloat(formData.employment.salary) <= 0) return "Salário mensal deve ser superior a 0.";
+                if (!formData.employment.years || parseInt(formData.employment.years) < 0) return "Tempo de serviço inválido.";
+                if (!formData.employment.jobTitle) return "Cargo é obrigatório.";
+                break;
+        }
+        return null;
+    };
+
     const next = async () => {
+        const validationError = validateStep();
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
         if (step === steps.length - 1) {
             setLoading(true);
             setError("");
@@ -70,8 +116,8 @@ export default function RegisterFlow() {
                         account_number: formData.bank.accountNumber,
                         account_holder: formData.bank.holder,
                         company_name: formData.employment.company,
-                        monthly_salary: parseFloat(formData.employment.salary),
-                        service_years: parseInt(formData.employment.years),
+                        monthly_salary: parseFloat(formData.employment.salary) || 0,
+                        service_years: parseInt(formData.employment.years) || 0,
                         job_title: formData.employment.jobTitle,
                         family_contacts: formData.familyContacts
                     });
@@ -141,6 +187,7 @@ export default function RegisterFlow() {
                                             placeholder="O seu nome completo"
                                             value={formData.fullName}
                                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                            maxLength={60}
                                         />
                                     </div>
                                     <div>
@@ -150,7 +197,8 @@ export default function RegisterFlow() {
                                             className="input-field"
                                             placeholder="9xx xxx xxx"
                                             value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').substring(0, 9) })}
+                                            maxLength={9}
                                         />
                                     </div>
                                     <div>
@@ -217,14 +265,42 @@ export default function RegisterFlow() {
                                     <div key={i} style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius)' }}>
                                         <p style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Familiar {i + 1}</p>
                                         <div style={{ display: 'grid', gap: '1rem' }}>
-                                            <input type="text" placeholder="Nome completo" className="input-field" />
-                                            <input type="text" placeholder="Telemóvel" className="input-field" />
-                                            <select className="input-field">
-                                                <option>Grau de Parentesco</option>
-                                                <option>Pai/Mãe</option>
-                                                <option>Irmão/Irmã</option>
-                                                <option>Cônjuge</option>
-                                                <option>Outro</option>
+                                            <input
+                                                type="text"
+                                                placeholder="Nome completo"
+                                                className="input-field"
+                                                value={formData.familyContacts[i].name}
+                                                onChange={(e) => {
+                                                    const newContacts = [...formData.familyContacts];
+                                                    newContacts[i].name = e.target.value;
+                                                    setFormData({ ...formData, familyContacts: newContacts });
+                                                }}
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Telemóvel"
+                                                className="input-field"
+                                                value={formData.familyContacts[i].phone}
+                                                onChange={(e) => {
+                                                    const newContacts = [...formData.familyContacts];
+                                                    newContacts[i].phone = e.target.value;
+                                                    setFormData({ ...formData, familyContacts: newContacts });
+                                                }}
+                                            />
+                                            <select
+                                                className="input-field"
+                                                value={formData.familyContacts[i].relation}
+                                                onChange={(e) => {
+                                                    const newContacts = [...formData.familyContacts];
+                                                    newContacts[i].relation = e.target.value;
+                                                    setFormData({ ...formData, familyContacts: newContacts });
+                                                }}
+                                            >
+                                                <option value="">Grau de Parentesco</option>
+                                                <option value="Pai/Mãe">Pai/Mãe</option>
+                                                <option value="Irmão/Irmã">Irmão/Irmã</option>
+                                                <option value="Cônjuge">Cônjuge</option>
+                                                <option value="Outro">Outro</option>
                                             </select>
                                         </div>
                                     </div>
@@ -238,27 +314,55 @@ export default function RegisterFlow() {
                                 <div style={{ display: 'grid', gap: '1.5rem' }}>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>Banco</label>
-                                        <select className="input-field">
-                                            <option>Selecione o seu banco</option>
-                                            <option>BAI</option>
-                                            <option>BFA</option>
-                                            <option>BIC</option>
-                                            <option>BPC</option>
-                                            <option>Standard Bank</option>
-                                            <option>Atlântico</option>
+                                        <select
+                                            className="input-field"
+                                            value={formData.bank.name}
+                                            onChange={(e) => setFormData({ ...formData, bank: { ...formData.bank, name: e.target.value } })}
+                                        >
+                                            <option value="">Selecione o seu banco</option>
+                                            <option value="BAI">BAI</option>
+                                            <option value="BFA">BFA</option>
+                                            <option value="BIC">BIC</option>
+                                            <option value="BPC">BPC</option>
+                                            <option value="Standard Bank">Standard Bank</option>
+                                            <option value="Atlântico">Atlântico</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>IBAN (AO06...)</label>
-                                        <input type="text" placeholder="AO06 0000 0000 0000 0000 0" className="input-field" />
+                                        <input
+                                            type="text"
+                                            placeholder="AO06 0000 0000 0000 0000 0"
+                                            className="input-field"
+                                            value={formData.bank.iban}
+                                            onChange={(e) => {
+                                                let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                                                if (val.length > 25) val = val.substring(0, 25);
+                                                setFormData({ ...formData, bank: { ...formData.bank, iban: val } });
+                                            }}
+                                            maxLength={25}
+                                        />
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>Número de conta</label>
-                                        <input type="text" placeholder="00000000" className="input-field" />
+                                        <input
+                                            type="text"
+                                            placeholder="00000000"
+                                            className="input-field"
+                                            value={formData.bank.accountNumber}
+                                            onChange={(e) => setFormData({ ...formData, bank: { ...formData.bank, accountNumber: e.target.value.replace(/\D/g, '').substring(0, 20) } })}
+                                            maxLength={20}
+                                        />
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>Titular da conta</label>
-                                        <input type="text" placeholder="O seu nome completo" className="input-field" />
+                                        <input
+                                            type="text"
+                                            placeholder="O seu nome completo"
+                                            className="input-field"
+                                            value={formData.bank.holder}
+                                            onChange={(e) => setFormData({ ...formData, bank: { ...formData.bank, holder: e.target.value } })}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -270,20 +374,44 @@ export default function RegisterFlow() {
                                 <div style={{ display: 'grid', gap: '1.5rem' }}>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>Empresa</label>
-                                        <input type="text" placeholder="Nome da empresa" className="input-field" />
+                                        <input
+                                            type="text"
+                                            placeholder="Nome da empresa"
+                                            className="input-field"
+                                            value={formData.employment.company}
+                                            onChange={(e) => setFormData({ ...formData, employment: { ...formData.employment, company: e.target.value } })}
+                                        />
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem' }}>Salário Mensal (Kz)</label>
-                                        <input type="number" placeholder="Ex: 150000" className="input-field" />
+                                        <input
+                                            type="number"
+                                            placeholder="Ex: 150000"
+                                            className="input-field"
+                                            value={formData.employment.salary}
+                                            onChange={(e) => setFormData({ ...formData, employment: { ...formData.employment, salary: e.target.value } })}
+                                        />
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                         <div>
                                             <label style={{ display: 'block', marginBottom: '0.5rem' }}>Tempo (anos)</label>
-                                            <input type="number" placeholder="Ex: 2" className="input-field" />
+                                            <input
+                                                type="number"
+                                                placeholder="Ex: 2"
+                                                className="input-field"
+                                                value={formData.employment.years}
+                                                onChange={(e) => setFormData({ ...formData, employment: { ...formData.employment, years: e.target.value } })}
+                                            />
                                         </div>
                                         <div>
                                             <label style={{ display: 'block', marginBottom: '0.5rem' }}>Cargo</label>
-                                            <input type="text" placeholder="Ex: Técnico" className="input-field" />
+                                            <input
+                                                type="text"
+                                                placeholder="Ex: Técnico"
+                                                className="input-field"
+                                                value={formData.employment.jobTitle}
+                                                onChange={(e) => setFormData({ ...formData, employment: { ...formData.employment, jobTitle: e.target.value } })}
+                                            />
                                         </div>
                                     </div>
                                 </div>
