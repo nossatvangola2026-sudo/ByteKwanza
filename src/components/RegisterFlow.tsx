@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2 } from "lucide-react";
+import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2, QrCode } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -18,9 +18,20 @@ const formatIBAN = (val: string) => {
     return raw.match(/.{1,4}/g)?.join(' ') || '';
 };
 
-function FaceCaptureUI({ onCapture, capturedImage }: { onCapture: (data: string | null) => void, capturedImage: string | null }) {
+function FaceCaptureUI({ 
+    onCapture, 
+    capturedImage, 
+    capturedImageWithId 
+}: { 
+    onCapture: (selfie: string | null, selfieWithId: string | null) => void, 
+    capturedImage: string | null,
+    capturedImageWithId: string | null
+}) {
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [isScanning, setIsScanning] = useState(false);
+    const [captureMode, setCaptureMode] = useState<'select' | 'pc' | 'mobile'>('select');
+    const [capturePhase, setCapturePhase] = useState<1 | 2>(1);
+    const [tempSelfie, setTempSelfie] = useState<string | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -66,35 +77,55 @@ function FaceCaptureUI({ onCapture, capturedImage }: { onCapture: (data: string 
                 // Simulated Liveness / Server AI Validation time
                 setTimeout(() => {
                     setIsScanning(false);
-                    onCapture(imageData);
-                    stopCamera();
+                    if (capturePhase === 1) {
+                        setTempSelfie(imageData);
+                        setCapturePhase(2);
+                    } else {
+                        onCapture(tempSelfie, imageData);
+                        stopCamera();
+                    }
                 }, 3000);
             }
         }
     };
 
     const retake = () => {
-        onCapture(null);
+        onCapture(null, null);
+        setTempSelfie(null);
+        setCapturePhase(1);
         startCamera();
     };
 
-    if (capturedImage) {
+    if (capturedImage && capturedImageWithId) {
         return (
-            <div style={{ padding: '1rem', border: '2px solid var(--primary)', borderRadius: 'var(--radius)', textAlign: 'center' }}>
-                <div style={{ position: 'relative', width: '100%', maxWidth: '300px', margin: '0 auto', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-                    <img src={capturedImage} alt="Selfie" style={{ width: '100%', display: 'block' }} />
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', color: 'white', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                        <CheckCircle2 size={16} color="#4ade80" /> <span style={{fontSize: '0.875rem'}}>Identidade verificada via IA</span>
+            <div style={{ padding: '1.5rem', border: '1px solid #333', borderRadius: '1rem', background: '#111', textAlign: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div style={{ borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid #4ade80', position: 'relative' }}>
+                        <img src={capturedImage} alt="Selfie" style={{ width: '100%', display: 'block' }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(74, 222, 128, 0.9)', color: '#000', fontSize: '0.75rem', padding: '0.25rem', fontWeight: 'bold' }}>1. Rosto</div>
+                    </div>
+                    <div style={{ borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid #eab308', position: 'relative' }}>
+                        <img src={capturedImageWithId} alt="Selfie com BI" style={{ width: '100%', display: 'block' }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(234, 179, 8, 0.9)', color: '#000', fontSize: '0.75rem', padding: '0.25rem', fontWeight: 'bold' }}>2. Rosto + BI</div>
                     </div>
                 </div>
-                <button className="btn btn-outline" style={{ marginTop: '1rem' }} onClick={retake}>Tirar novamente</button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#4ade80', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                    <CheckCircle2 size={24} /> Ambas verificações concluídas
+                </div>
+                <button className="btn btn-outline" style={{ marginTop: '1.5rem', borderColor: '#333', color: 'white' }} onClick={retake}>Refazer Captações</button>
             </div>
         );
     }
 
     if (stream) {
         return (
-            <div style={{ position: 'relative', width: '100%', maxWidth: '400px', margin: '0 auto', background: '#000', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '400px', margin: '0 auto', background: '#000', borderRadius: '1rem', overflow: 'hidden', border: `2px solid ${capturePhase === 1 ? '#4ade80' : '#eab308'}` }}>
+                <div style={{ position: 'absolute', top: '1rem', left: 0, right: 0, textAlign: 'center', zIndex: 20 }}>
+                    <span style={{ background: 'rgba(0,0,0,0.7)', color: capturePhase === 1 ? '#4ade80' : '#eab308', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.875rem', fontWeight: 'bold', border: `1px solid ${capturePhase === 1 ? '#4ade80' : '#eab308'}` }}>
+                        {capturePhase === 1 ? '1/2: Apenas o Rosto' : '2/2: Rosto + Documento (BI)'}
+                    </span>
+                </div>
+                
                 <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: 'block', transform: 'scaleX(-1)' }} />
                 
                 <div style={{ 
@@ -134,7 +165,7 @@ function FaceCaptureUI({ onCapture, capturedImage }: { onCapture: (data: string 
                          </button>
                      ) : (
                          <div style={{ background: 'rgba(0,0,0,0.8)', padding: '0.5rem 1rem', borderRadius: '20px', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
-                             <Loader2 size={16} className="animate-spin" /> Verificando humano/IA...
+                             <Loader2 size={16} className="animate-spin" /> {capturePhase === 1 ? 'Analisando Liveness...' : 'Validando Documento + Rosto...'}
                          </div>
                      )}
                 </div>
@@ -142,11 +173,80 @@ function FaceCaptureUI({ onCapture, capturedImage }: { onCapture: (data: string 
         );
     }
 
+    if (captureMode === 'mobile') {
+        return (
+            <div style={{ padding: '2.5rem', background: '#111', borderRadius: '1rem', color: 'white', textAlign: 'center' }}>
+               <h4 style={{ color: '#4ade80', marginBottom: '1rem' }}>Digitalize o QR Code</h4>
+               <div style={{ background: 'white', padding: '1rem', display: 'inline-block', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
+                   <QrCode size={160} color="black" />
+               </div>
+               <p style={{ color: '#9ca3af', fontSize: '0.875rem', maxWidth: '300px', margin: '0 auto' }}>Aponte a câmara do seu telemóvel para continuar a verificação de forma contínua no dispositivo móvel.</p>
+               <button className="btn btn-outline" style={{ marginTop: '2rem', borderColor: '#333', color: 'white' }} onClick={() => setCaptureMode('select')}>Voltar</button>
+            </div>
+        );
+    }
+
     return (
-        <div style={{ padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', textAlign: 'center' }}>
-            <Camera size={48} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-            <p style={{marginBottom: '1rem', color: '#666'}}>A captação fotográfica requer acesso à câmara para validar a sua identidade através do nosso motor de segurança inteligente.</p>
-            <button className="btn btn-primary" onClick={startCamera}>Ligar Câmara</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Box 1: Info (Verificação Facial Anti-Fraude) */}
+            <div style={{ background: '#0a1005', border: '1px solid #4ade80', borderRadius: '0.75rem', padding: '1.5rem', textAlign: 'left' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4ade80', marginBottom: '1rem', fontWeight: 'bold' }}>
+                    <Camera size={20} />
+                    Verificação Facial Anti-Fraude
+                </div>
+                <ul style={{ color: '#e5e7eb', fontSize: '0.875rem', margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <li>Rosto centralizado e bem iluminado</li>
+                    <li>Sem óculos de sol, chapéu ou máscara</li>
+                    <li>Fundo neutro, sem outras pessoas</li>
+                    <li style={{ color: '#eab308' }}><strong>Exigidas 2 fotos:</strong> 1º Apenas Rosto, 2º Rosto exibindo BI Original</li>
+                </ul>
+            </div>
+
+            {/* Divider */}
+            <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.05em' }}>
+                ESCOLHA COMO TIRAR A SUA SELFIE:
+            </div>
+
+            {/* Box 2: Options */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <button 
+                    onClick={() => { setCaptureMode('pc'); startCamera(); }}
+                    style={{ 
+                        background: '#111', border: '1px solid #333', borderRadius: '0.75rem', padding: '1.25rem', 
+                        display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+                        color: 'white', width: '100%'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.borderColor = '#4ade80'}
+                    onMouseOut={(e) => e.currentTarget.style.borderColor = '#333'}
+                >
+                    <div style={{ background: 'rgba(74, 222, 128, 0.1)', padding: '0.75rem', borderRadius: '0.5rem', color: '#4ade80' }}>
+                        <Camera size={24} />
+                    </div>
+                    <div>
+                        <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', fontSize: '1rem' }}>Usar Câmera do PC</div>
+                        <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Tire a selfie directamente pela webcam</div>
+                    </div>
+                </button>
+
+                <button 
+                    onClick={() => setCaptureMode('mobile')}
+                    style={{ 
+                        background: '#111', border: '1px solid #333', borderRadius: '0.75rem', padding: '1.25rem', 
+                        display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+                        color: 'white', width: '100%'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.borderColor = '#eab308'}
+                    onMouseOut={(e) => e.currentTarget.style.borderColor = '#333'}
+                >
+                    <div style={{ background: 'rgba(234, 179, 8, 0.1)', padding: '0.75rem', borderRadius: '0.5rem', color: '#eab308' }}>
+                        <QrCode size={24} />
+                    </div>
+                    <div>
+                        <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', fontSize: '1rem' }}>Usar Telemóvel</div>
+                        <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Digitalize o QR code com o smartphone</div>
+                    </div>
+                </button>
+            </div>
         </div>
     );
 }
@@ -162,6 +262,7 @@ export default function RegisterFlow() {
         biFront: null as string | null,
         biBack: null as string | null,
         selfie: null as string | null,
+        selfieWithId: null as string | null,
         familyContacts: [
             { name: "", phone: "", relation: "" },
             { name: "", phone: "", relation: "" }
@@ -199,7 +300,7 @@ export default function RegisterFlow() {
                 if (!formData.biBack) errors.push("Por favor, anexe a fotografia do Verso do BI.");
                 break;
             case 2:
-                if (!formData.selfie) errors.push("Por favor, conclua a captação e verificação facial em tempo real.");
+                if (!formData.selfie || !formData.selfieWithId) errors.push("Por favor, conclua as duas captações (Rosto e Rosto+Documento) na verificação em tempo real.");
                 break;
             case 3:
                 for (let i = 0; i < 2; i++) {
@@ -398,7 +499,8 @@ export default function RegisterFlow() {
                                 <h3 style={{ marginBottom: '1.5rem' }}>Autenticação Liveness (IA)</h3>
                                 <FaceCaptureUI 
                                     capturedImage={formData.selfie} 
-                                    onCapture={(data) => setFormData({ ...formData, selfie: data })} 
+                                    capturedImageWithId={formData.selfieWithId}
+                                    onCapture={(s1, s2) => setFormData({ ...formData, selfie: s1, selfieWithId: s2 })} 
                                 />
                             </div>
                         )}
