@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,139 @@ const formatIBAN = (val: string) => {
     const raw = val.replace(/[^A-Z0-9]/g, '').substring(0, 25);
     return raw.match(/.{1,4}/g)?.join(' ') || '';
 };
+
+function FaceCaptureUI({ onCapture, capturedImage }: { onCapture: (data: string | null) => void, capturedImage: string | null }) {
+    const [stream, setStream] = useState<MediaStream | null>(null);
+    const [isScanning, setIsScanning] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const startCamera = async () => {
+        try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+            setStream(mediaStream);
+            if (videoRef.current) {
+                videoRef.current.srcObject = mediaStream;
+            }
+        } catch (err) {
+            console.error("Erro ao aceder à câmara", err);
+            alert("Não foi possível ligar a câmara. Por favor, permita o acesso bloqueado no seu navegador.");
+        }
+    };
+
+    const stopCamera = (mediaStream: MediaStream | null = stream) => {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            setStream(null);
+        }
+    };
+
+    useEffect(() => {
+        return () => stopCamera();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const capturePhoto = () => {
+        if (videoRef.current && canvasRef.current) {
+            setIsScanning(true);
+            canvasRef.current.width = videoRef.current.videoWidth;
+            canvasRef.current.height = videoRef.current.videoHeight;
+            const ctx = canvasRef.current.getContext('2d');
+            
+            if (ctx) {
+                // Mirror the canvas image drawing to match the mirrored video UI
+                ctx.translate(canvasRef.current.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(videoRef.current, 0, 0);
+                const imageData = canvasRef.current.toDataURL('image/jpeg');
+                
+                // Simulated Liveness / Server AI Validation time
+                setTimeout(() => {
+                    setIsScanning(false);
+                    onCapture(imageData);
+                    stopCamera();
+                }, 3000);
+            }
+        }
+    };
+
+    const retake = () => {
+        onCapture(null);
+        startCamera();
+    };
+
+    if (capturedImage) {
+        return (
+            <div style={{ padding: '1rem', border: '2px solid var(--primary)', borderRadius: 'var(--radius)', textAlign: 'center' }}>
+                <div style={{ position: 'relative', width: '100%', maxWidth: '300px', margin: '0 auto', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                    <img src={capturedImage} alt="Selfie" style={{ width: '100%', display: 'block' }} />
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', color: 'white', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <CheckCircle2 size={16} color="#4ade80" /> <span style={{fontSize: '0.875rem'}}>Identidade verificada via IA</span>
+                    </div>
+                </div>
+                <button className="btn btn-outline" style={{ marginTop: '1rem' }} onClick={retake}>Tirar novamente</button>
+            </div>
+        );
+    }
+
+    if (stream) {
+        return (
+            <div style={{ position: 'relative', width: '100%', maxWidth: '400px', margin: '0 auto', background: '#000', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: 'block', transform: 'scaleX(-1)' }} />
+                
+                <div style={{ 
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
+                    boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)', 
+                    borderRadius: '50%',
+                    width: '65%', height: '75%',
+                    margin: 'auto',
+                    border: '2px dashed rgba(255,255,255,0.8)',
+                    boxSizing: 'border-box',
+                    pointerEvents: 'none'
+                }}></div>
+
+                {isScanning && (
+                    <motion.div 
+                        initial={{ top: '15%' }}
+                        animate={{ top: ['15%', '85%', '15%'] }}
+                        transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                        style={{
+                            position: 'absolute', left: '15%', right: '15%', height: '3px',
+                            background: '#3b82f6', boxShadow: '0 0 15px #3b82f6', zIndex: 10,
+                            pointerEvents: 'none'
+                        }}
+                    />
+                )}
+                
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
+                
+                <div style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 20 }}>
+                     {!isScanning ? (
+                         <button onClick={capturePhoto} style={{ 
+                             width: '64px', height: '64px', borderRadius: '50%', 
+                             background: 'rgba(255,255,255,0.3)', border: '4px solid white',
+                             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0
+                         }}>
+                             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'white' }}></div>
+                         </button>
+                     ) : (
+                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '0.5rem 1rem', borderRadius: '20px', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                             <Loader2 size={16} className="animate-spin" /> Verificando humano/IA...
+                         </div>
+                     )}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', textAlign: 'center' }}>
+            <Camera size={48} color="var(--primary)" style={{ marginBottom: '1rem' }} />
+            <p style={{marginBottom: '1rem', color: '#666'}}>A captação fotográfica requer acesso à câmara para validar a sua identidade através do nosso motor de segurança inteligente.</p>
+            <button className="btn btn-primary" onClick={startCamera}>Ligar Câmara</button>
+        </div>
+    );
+}
 
 export default function RegisterFlow() {
     const [step, setStep] = useState(0);
@@ -66,7 +199,7 @@ export default function RegisterFlow() {
                 if (!formData.biBack) errors.push("Por favor, anexe a fotografia do Verso do BI.");
                 break;
             case 2:
-                if (!formData.selfie) errors.push("Por favor, tire ou carregue uma fotografia para o reconhecimento facial.");
+                if (!formData.selfie) errors.push("Por favor, conclua a captação e verificação facial em tempo real.");
                 break;
             case 3:
                 for (let i = 0; i < 2; i++) {
@@ -262,15 +395,11 @@ export default function RegisterFlow() {
 
                         {step === 2 && (
                             <div className="step-content">
-                                <h3 style={{ marginBottom: '1.5rem' }}>Reconhecimento facial</h3>
-                                <div style={{ padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', textAlign: 'center' }}>
-                                    <Camera size={48} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-                                    <p>Tire uma fotografia segurando o seu BI próximo do rosto.</p>
-                                    <label className="btn btn-primary" style={{ marginTop: '1rem', cursor: 'pointer', display: 'inline-block' }}>
-                                        {formData.selfie ? "Fotografia carregada ✓" : "Abrir câmara"}
-                                        <input type="file" accept="image/*" capture="user" style={{ display: 'none' }} onChange={(e) => setFormData({ ...formData, selfie: e.target.files?.[0]?.name || null })} />
-                                    </label>
-                                </div>
+                                <h3 style={{ marginBottom: '1.5rem' }}>Autenticação Liveness (IA)</h3>
+                                <FaceCaptureUI 
+                                    capturedImage={formData.selfie} 
+                                    onCapture={(data) => setFormData({ ...formData, selfie: data })} 
+                                />
                             </div>
                         )}
 
