@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2, QrCode } from "lucide-react";
+import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2, QrCode, Scan } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -32,6 +32,7 @@ function FaceCaptureUI({
     const [captureMode, setCaptureMode] = useState<'select' | 'pc' | 'mobile'>('select');
     const [capturePhase, setCapturePhase] = useState<1 | 2>(1);
     const [tempSelfie, setTempSelfie] = useState<string | null>(null);
+    const [countdown, setCountdown] = useState<number | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -59,6 +60,30 @@ function FaceCaptureUI({
         return () => stopCamera();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (!stream || isScanning) {
+            setCountdown(null);
+            return;
+        }
+
+        let count = 4;
+        setCountdown(count);
+
+        const interval = setInterval(() => {
+            count -= 1;
+            if (count > 0) {
+                setCountdown(count);
+            } else {
+                clearInterval(interval);
+                setCountdown(null);
+                capturePhoto();
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [stream, isScanning, capturePhase]);
 
     const capturePhoto = () => {
         if (videoRef.current && canvasRef.current) {
@@ -154,15 +179,14 @@ function FaceCaptureUI({
                 
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 
-                <div style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 20 }}>
+                <div style={{ position: 'absolute', bottom: '2rem', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 20 }}>
                      {!isScanning ? (
-                         <button onClick={capturePhoto} style={{ 
-                             width: '64px', height: '64px', borderRadius: '50%', 
-                             background: 'rgba(255,255,255,0.3)', border: '4px solid white',
-                             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0
-                         }}>
-                             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'white' }}></div>
-                         </button>
+                         countdown !== null && countdown > 0 ? (
+                             <div style={{ background: 'rgba(0,0,0,0.8)', padding: '0.75rem 1.5rem', borderRadius: '30px', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1rem', fontWeight: 'bold', border: '1px solid #4ade80' }}>
+                                 <Scan size={20} className="animate-pulse" /> 
+                                 A detetar rosto... {countdown}s
+                             </div>
+                         ) : null
                      ) : (
                          <div style={{ background: 'rgba(0,0,0,0.8)', padding: '0.5rem 1rem', borderRadius: '20px', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
                              <Loader2 size={16} className="animate-spin" /> {capturePhase === 1 ? 'Analisando Liveness...' : 'Validando Documento + Rosto...'}
