@@ -115,9 +115,9 @@ export default function UserDashboard() {
     const initials = displayName ? displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U';
 
     // Calculate stats from real data
-    const totalDebt = credits
-        .filter(c => c.status === 'approved' || c.status === 'active')
-        .reduce((sum, c) => sum + (c.amount || 0), 0);
+    const totalDebt = (credits as any[])
+        .filter((c: any) => c.status === 'approved' || c.status === 'active')
+        .reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
 
     const stats = [
         { label: "Limite disponível", value: profile?.credit_limit ? `${Number(profile.credit_limit).toLocaleString()} Kz` : "60.000 Kz", color: "var(--tertiary)" },

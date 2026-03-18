@@ -109,9 +109,9 @@ export default function AdminDashboard() {
 
             if (profiles) {
                 // KYC queue: profiles that are not yet verified
-                const pendingKyc = profiles
-                    .filter(p => p.kyc_status !== 'verified')
-                    .map((p, i) => ({
+                const pendingKyc = (profiles as any[])
+                    .filter((p: any) => p.kyc_status !== 'verified')
+                    .map((p: any, i: number) => ({
                         id: i + 1,
                         name: p.full_name || p.email || 'Sem nome',
                         date: new Date(p.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
                 setKycQueue(pendingKyc);
 
                 // All users
-                const allUsers = profiles.map((p, i) => ({
+                const allUsers = (profiles as any[]).map((p: any, i: number) => ({
                     id: i + 1,
                     realId: p.id, // Keep the real UUID for deletion
                     name: p.full_name || 'Sem nome',
@@ -141,9 +141,9 @@ export default function AdminDashboard() {
                 .order('created_at', { ascending: false });
 
             if (credits) {
-                const pending = credits
-                    .filter(c => c.status === 'pending')
-                    .map(c => ({
+                const pending = (credits as any[])
+                    .filter((c: any) => c.status === 'pending')
+                    .map((c: any) => ({
                         id: c.id,
                         name: c.profiles?.full_name || 'Utilizador',
                         date: new Date(c.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
@@ -153,15 +153,15 @@ export default function AdminDashboard() {
                 setCreditRequests(pending);
 
                 // Calculate real stats
-                const totalLent = credits
-                    .filter(c => c.status === 'approved' || c.status === 'active')
-                    .reduce((sum, c) => sum + (c.amount || 0), 0);
-                const totalReceived = credits
-                    .filter(c => c.status === 'paid')
-                    .reduce((sum, c) => sum + (c.amount || 0), 0);
-                const overdue = credits
-                    .filter(c => c.status === 'overdue')
-                    .reduce((sum, c) => sum + (c.amount || 0), 0);
+                const totalLent = (credits as any[])
+                    .filter((c: any) => c.status === 'approved' || c.status === 'active')
+                    .reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
+                const totalReceived = (credits as any[])
+                    .filter((c: any) => c.status === 'paid')
+                    .reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
+                const overdue = (credits as any[])
+                    .filter((c: any) => c.status === 'overdue')
+                    .reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
 
                 setStats([
                     { label: "Total Emprestado", value: `${totalLent.toLocaleString()} Kz`, color: "var(--primary)" },

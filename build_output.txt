@@ -1,0 +1,72 @@
+﻿node.exe : ÔÜá Warning: 
+Next.js inferred your 
+workspace root, but it may 
+not be correct.
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified:     
+(ÔÜá Warning: Ne...n    ot 
+be correct.:Strin    g) 
+[], RemoteExcepti    on
+    + FullyQualifiedErro   
+ rId : NativeCommandE    
+rror
+ 
+ We detected multiple 
+lockfiles and selected the 
+directory of C:\Users\Giras
+sol_\package-lock.json as 
+the root directory.
+ To silence this warning, 
+set `turbopack.root` in 
+your Next.js config, or 
+consider removing one of 
+the lockfiles if it's not 
+needed.
+   See https://nextjs.org/d
+ocs/app/api-reference/confi
+g/next-config-js/turbopack#
+root-directory for more 
+information.
+ Detected additional 
+lockfiles: 
+   * C:\Users\Girassol_\Doc
+uments\KwanzaCr├®dito\packa
+ge-lock.json
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 4.1s
+  Running TypeScript ...
+  Collecting page data using 19 workers ...
+  Generating static pages using 19 workers (0/8) ...
+--- BUILD CHECK ---
+Client initialized with URL: https://fbiyywb...
+  Generating static pages using 19 workers (2/8) 
+  Generating static pages using 19 workers (4/8) 
+  Generating static pages using 19 workers (6/8) 
+Ô£ô Generating static pages using 19 workers (8/8) in 735.9ms
+  Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ ãÆ /admin
+Ôö£ Ôùï /dashboard
+Ôö£ Ôùï /login
+Ôö£ Ôùï /register
+Ôöö Ôùï /reset-password
+
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+
