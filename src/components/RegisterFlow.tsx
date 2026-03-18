@@ -6,6 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+const formatPhoneAOA = (val: string) => {
+    const d = val.replace(/\D/g, '').substring(0, 9);
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `${d.slice(0, 3)} ${d.slice(3)}`;
+    return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}`;
+};
+
+const formatIBAN = (val: string) => {
+    const raw = val.replace(/[^A-Z0-9]/g, '').substring(0, 25);
+    return raw.match(/.{1,4}/g)?.join(' ') || '';
+};
+
 export default function RegisterFlow() {
     const [step, setStep] = useState(0);
     const [formData, setFormData] = useState({
@@ -38,50 +50,53 @@ export default function RegisterFlow() {
 
     const router = useRouter();
 
-    const validateStep = () => {
+    const validateStep = (): string[] => {
         setError("");
+        const errors: string[] = [];
         
         switch (step) {
             case 0:
-                if (!formData.fullName || formData.fullName.length < 3) return "Nome completo deve ter pelo menos 3 caracteres.";
-                if (!formData.phone || !/^[9][0-9]{8}$/.test(formData.phone)) return "Telemóvel deve ter 9 dígitos e começar por 9.";
-                if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return "Formato de email inválido.";
-                if (!formData.password || formData.password.length < 6) return "Password deve ter pelo menos 6 caracteres.";
+                if (!formData.fullName || formData.fullName.trim().length < 3) errors.push("O Nome Completo deve ter pelo menos 3 caracteres.");
+                if (!formData.phone || !/^[9][0-9]{8}$/.test(formData.phone)) errors.push("O Telemóvel deve ter 9 dígitos e começar pelo número 9.");
+                if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) errors.push("O formato do email é inválido.");
+                if (!formData.password || formData.password.length < 6) errors.push("A Password deve ter pelo menos 6 caracteres.");
                 break;
             case 1:
-                return null; // File validation will be done when files are selected
+                if (!formData.biFront) errors.push("Por favor, anexe a fotografia da Frente do BI.");
+                if (!formData.biBack) errors.push("Por favor, anexe a fotografia do Verso do BI.");
+                break;
             case 2:
-                // Selfie validation logic
+                if (!formData.selfie) errors.push("Por favor, tire ou carregue uma fotografia para o reconhecimento facial.");
                 break;
             case 3:
                 for (let i = 0; i < 2; i++) {
                     const c = formData.familyContacts[i];
-                    if (!c.name || c.name.length < 3) return `Nome do Familiar ${i + 1} é obrigatório.`;
-                    if (!c.phone || !/^[9][0-9]{8}$/.test(c.phone)) return `Telemóvel do Familiar ${i + 1} inválido (9 dígitos).`;
-                    if (!c.relation) return `Grau de parentesco do Familiar ${i + 1} é obrigatório.`;
+                    if (!c.name || c.name.length < 3) errors.push(`Nome do Familiar ${i + 1} é obrigatório.`);
+                    if (!c.phone || !/^[9][0-9]{8}$/.test(c.phone)) errors.push(`Telemóvel do Familiar ${i + 1} inválido (9 dígitos).`);
+                    if (!c.relation) errors.push(`Grau de parentesco do Familiar ${i + 1} é obrigatório.`);
                 }
                 break;
             case 4:
-                if (!formData.bank.name) return "Selecione o seu banco.";
+                if (!formData.bank.name) errors.push("Selecione o seu banco na lista.");
                 const ibanClean = formData.bank.iban.replace(/\s/g, "");
-                if (ibanClean.length !== 25 || !ibanClean.startsWith("AO06")) return "IBAN inválido. Deve ter 25 caracteres e começar por AO06.";
-                if (!formData.bank.accountNumber) return "Número de conta é obrigatório.";
-                if (!formData.bank.holder) return "Titular da conta é obrigatório.";
+                if (ibanClean.length !== 25 || !ibanClean.startsWith("AO06")) errors.push("O IBAN deve ter 25 caracteres e começar obrigatoriamente por AO06.");
+                if (!formData.bank.accountNumber) errors.push("O número de conta é obrigatório.");
+                if (!formData.bank.holder) errors.push("O nome do titular da conta é obrigatório.");
                 break;
             case 5:
-                if (!formData.employment.company) return "Empresa é obrigatória.";
-                if (!formData.employment.salary || parseFloat(formData.employment.salary) <= 0) return "Salário mensal deve ser superior a 0.";
-                if (!formData.employment.years || parseInt(formData.employment.years) < 0) return "Tempo de serviço inválido.";
-                if (!formData.employment.jobTitle) return "Cargo é obrigatório.";
+                if (!formData.employment.company) errors.push("Empresa é obrigatória.");
+                if (!formData.employment.salary || parseFloat(formData.employment.salary) <= 0) errors.push("Salário mensal deve ser superior a 0.");
+                if (!formData.employment.years || parseInt(formData.employment.years) < 0) errors.push("Tempo de serviço inválido.");
+                if (!formData.employment.jobTitle) errors.push("Cargo é obrigatório.");
                 break;
         }
-        return null;
+        return errors;
     };
 
     const next = async () => {
-        const validationError = validateStep();
-        if (validationError) {
-            setError(validationError);
+        const validationErrors = validateStep();
+        if (validationErrors.length > 0) {
+            setError(validationErrors.join('\n'));
             return;
         }
 
@@ -196,9 +211,9 @@ export default function RegisterFlow() {
                                             type="text"
                                             className="input-field"
                                             placeholder="9xx xxx xxx"
-                                            value={formData.phone}
+                                            value={formatPhoneAOA(formData.phone)}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').substring(0, 9) })}
-                                            maxLength={9}
+                                            maxLength={11}
                                         />
                                     </div>
                                     <div>
@@ -232,7 +247,6 @@ export default function RegisterFlow() {
                                         />
                                     </div>
                                 </div>
-                                {error && <p style={{ color: 'red', fontSize: '0.875rem', marginTop: '1rem' }}>{error}</p>}
                             </div>
                         )}
 
@@ -240,8 +254,8 @@ export default function RegisterFlow() {
                             <div className="step-content">
                                 <h3 style={{ marginBottom: '1.5rem' }}>Bilhete de Identidade (BI)</h3>
                                 <div style={{ display: 'grid', gap: '1rem' }}>
-                                    <FileUpload label="Frente do BI" />
-                                    <FileUpload label="Verso do BI" />
+                                    <FileUpload label="Frente do BI" onChange={(e) => setFormData({ ...formData, biFront: e.target.files?.[0]?.name || null })} />
+                                    <FileUpload label="Verso do BI" onChange={(e) => setFormData({ ...formData, biBack: e.target.files?.[0]?.name || null })} />
                                 </div>
                             </div>
                         )}
@@ -252,7 +266,10 @@ export default function RegisterFlow() {
                                 <div style={{ padding: '2rem', border: '2px dashed var(--border)', borderRadius: 'var(--radius)', textAlign: 'center' }}>
                                     <Camera size={48} color="var(--primary)" style={{ marginBottom: '1rem' }} />
                                     <p>Tire uma fotografia segurando o seu BI próximo do rosto.</p>
-                                    <button className="btn btn-primary" style={{ marginTop: '1rem' }}>Abrir câmara</button>
+                                    <label className="btn btn-primary" style={{ marginTop: '1rem', cursor: 'pointer', display: 'inline-block' }}>
+                                        {formData.selfie ? "Fotografia carregada ✓" : "Abrir câmara"}
+                                        <input type="file" accept="image/*" capture="user" style={{ display: 'none' }} onChange={(e) => setFormData({ ...formData, selfie: e.target.files?.[0]?.name || null })} />
+                                    </label>
                                 </div>
                             </div>
                         )}
@@ -278,12 +295,13 @@ export default function RegisterFlow() {
                                             />
                                             <input
                                                 type="text"
-                                                placeholder="Telemóvel"
+                                                placeholder="Telemóvel (9xx xxx xxx)"
                                                 className="input-field"
-                                                value={formData.familyContacts[i].phone}
+                                                value={formatPhoneAOA(formData.familyContacts[i].phone)}
+                                                maxLength={11}
                                                 onChange={(e) => {
                                                     const newContacts = [...formData.familyContacts];
-                                                    newContacts[i].phone = e.target.value;
+                                                    newContacts[i].phone = e.target.value.replace(/\D/g, '').substring(0, 9);
                                                     setFormData({ ...formData, familyContacts: newContacts });
                                                 }}
                                             />
@@ -334,13 +352,13 @@ export default function RegisterFlow() {
                                             type="text"
                                             placeholder="AO06 0000 0000 0000 0000 0"
                                             className="input-field"
-                                            value={formData.bank.iban}
+                                            value={formatIBAN(formData.bank.iban)}
                                             onChange={(e) => {
                                                 let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
                                                 if (val.length > 25) val = val.substring(0, 25);
                                                 setFormData({ ...formData, bank: { ...formData.bank, iban: val } });
                                             }}
-                                            maxLength={25}
+                                            maxLength={31}
                                         />
                                     </div>
                                     <div>
@@ -423,6 +441,16 @@ export default function RegisterFlow() {
                     </motion.div>
                 </AnimatePresence>
 
+                {error && (
+                    <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255,0,0,0.05)', borderRadius: 'var(--radius)', border: '1px solid rgba(255,0,0,0.1)' }}>
+                        <ul style={{ color: 'red', fontSize: '0.875rem', margin: 0, paddingLeft: '1.2rem' }}>
+                            {error.split('\n').map((err, i) => (
+                                <li key={i} style={{ marginBottom: '0.25rem' }}>{err}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
                 <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
                     {step > 0 && (
                         <button className="btn btn-outline" style={{ flex: 1 }} onClick={prev}>Voltar</button>
@@ -436,11 +464,11 @@ export default function RegisterFlow() {
     );
 }
 
-function FileUpload({ label }: { label: string }) {
+function FileUpload({ label, onChange }: { label: string, onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
     return (
         <div style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', background: 'white' }}>
             <p style={{ fontWeight: 'bold', marginBottom: '1rem' }}>{label}</p>
-            <input type="file" style={{ fontSize: '0.875rem' }} />
+            <input type="file" style={{ fontSize: '0.875rem' }} onChange={onChange} />
         </div>
     );
 }
