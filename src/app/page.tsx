@@ -1,13 +1,14 @@
 "use client";
 
-import { ArrowRight, Shield, Zap, TrendingUp, CheckCircle2, PlayCircle, Star, Users, Clock, UserPlus, FileSearch, Wallet } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowRight, Shield, Zap, TrendingUp, CheckCircle2, PlayCircle, Star, Users, Clock, UserPlus, FileSearch, Wallet, Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function LandingPage() {
   const [amount, setAmount] = useState(150000);
   const [months, setMonths] = useState(1);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Credit Calculation Logic
   const rate = months === 1 ? 0.35 : 0.45;
@@ -66,15 +67,16 @@ export default function LandingPage() {
       <nav style={{
         position: 'sticky',
         top: 0,
-        zIndex: 100,
+        zIndex: 1000,
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid var(--border)'
+        borderBottom: '1px solid var(--border)',
+        height: 'var(--header-height)'
       }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '80px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.5rem', fontWeight: '800' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.25rem', fontWeight: '800' }}>
             <div style={{
-              width: 40, height: 40,
+              width: 36, height: 36,
               background: 'orange',
               borderRadius: '10px',
               display: 'flex',
@@ -83,61 +85,103 @@ export default function LandingPage() {
               color: 'white',
               boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
             }}>
-              <TrendingUp size={24} />
+              <TrendingUp size={20} />
             </div>
             <span>Kwanza<span style={{ color: 'var(--primary)' }}>Crédito</span></span>
-          </div>
+          </Link>
 
-          <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
-            <Link href="#como-funciona" className="btn-ghost" style={{ fontWeight: '600' }}>Como funciona</Link>
-            <Link href="#beneficios" className="btn-ghost" style={{ fontWeight: '600' }}>Benefícios</Link>
-            <div style={{ display: 'flex', gap: '1rem', marginLeft: '1.5rem' }}>
-              <Link href="/login" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid #E5E7EB', color: '#374151', padding: '0.6rem 1.8rem', borderRadius: '12px', textDecoration: 'none' }}>Entrar</Link>
-              <Link href="/register" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', padding: '0.6rem 1.8rem', borderRadius: '12px', textDecoration: 'none' }}>Criar conta</Link>
+          {/* Desktop Nav */}
+          <div className="hidden-mobile" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+            <Link href="#como-funciona" style={{ fontWeight: '600', color: '#475569' }}>Como funciona</Link>
+            <Link href="#beneficios" style={{ fontWeight: '600', color: '#475569' }}>Benefícios</Link>
+            <div style={{ display: 'flex', gap: '0.75rem', marginLeft: '1rem' }}>
+              <Link href="/login" className="btn btn-outline" style={{ padding: '0.5rem 1.5rem', borderRadius: '10px' }}>Entrar</Link>
+              <Link href="/register" className="btn btn-primary" style={{ padding: '0.5rem 1.5rem', borderRadius: '10px' }}>Criar conta</Link>
             </div>
           </div>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="hidden-desktop" 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            style={{ padding: '0.5rem', color: '#1e293b' }}
+          >
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              style={{
+                position: 'absolute',
+                top: 'var(--header-height)',
+                left: 0,
+                right: 0,
+                background: 'white',
+                borderBottom: '1px solid var(--border)',
+                padding: '1.5rem',
+                zIndex: 999,
+                overflow: 'hidden'
+              }}
+            >
+              <nav style={{ display: 'grid', gap: '1.25rem' }}>
+                <Link href="#como-funciona" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1e293b' }}>Como funciona</Link>
+                <Link href="#beneficios" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1e293b' }}>Benefícios</Link>
+                <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <Link href="/login" className="btn btn-outline" style={{ padding: '0.85rem', borderRadius: '12px' }}>Entrar</Link>
+                  <Link href="/register" className="btn btn-primary" style={{ padding: '0.85rem', borderRadius: '12px' }}>Criar conta</Link>
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Hero Section */}
-      <section style={{ padding: '5rem 0 8rem' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem', alignItems: 'center' }}>
+      <section style={{ padding: '4rem 0 6rem' }}>
+        <div className="container hero-grid">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="badge" style={{ marginBottom: '2.5rem', background: '#f0fdf4', color: '#16a34a', border: '1px solid #dcfce7' }}>
-              <CheckCircle2 size={14} /> APROVADO EM MENOS DE 24H
+            <div className="badge" style={{ display: 'inline-flex', marginBottom: '1.5rem', background: '#f0fdf4', color: '#16a34a', border: '1px solid #dcfce7', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700' }}>
+              <CheckCircle2 size={14} style={{ marginRight: '0.4rem' }} /> APROVADO EM MENOS DE 24H
             </div>
-            <h1 style={{ fontSize: '5.5rem', lineHeight: '1.05', fontWeight: '950', marginBottom: '2.5rem', letterSpacing: '-0.04em', color: '#0F172A' }}>
-              Microcrédito <br /> Rápido e Seguro <br /> para o trabalhador angolano
+            <h1 className="hero-title">
+              Microcrédito <br className="hidden-mobile" /> Rápido e Seguro <br className="hidden-mobile" /> para o trabalhador angolano
             </h1>
-            <p style={{ fontSize: '1.25rem', color: '#475569', marginBottom: '3.5rem', maxWidth: '580px', lineHeight: '1.7' }}>
+            <p className="hero-subtitle">
               Aceda a crédito de forma simples, rápida e transparente. Sem burocracia, sem filas. Tudo online e na palma da sua mão.
             </p>
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '5rem' }}>
-              <Link href="/register" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', padding: '1.25rem 2.5rem', fontSize: '1.1rem', borderRadius: '16px', textDecoration: 'none' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem', marginBottom: '3rem' }}>
+              <Link href="/register" className="btn btn-primary" style={{ padding: '1.1rem 2rem', fontSize: '1.05rem', borderRadius: '14px', flex: '1 1 auto', maxWidth: '280px' }}>
                 Começar agora <ArrowRight size={20} />
               </Link>
-              <Link href="#como-funciona" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', padding: '1.25rem 2.5rem', fontSize: '1.1rem', borderRadius: '16px', color: '#ea580c', border: '1px solid #ea580c', textDecoration: 'none' }}>
-                <PlayCircle size={20} /> Ver como funciona
+              <Link href="#como-funciona" className="btn btn-outline" style={{ padding: '1.1rem 2rem', fontSize: '1.05rem', borderRadius: '14px', color: '#ea580c', border: '1px solid #ea580c', flex: '1 1 auto', maxWidth: '280px' }}>
+                <PlayCircle size={20} /> Como funciona
               </Link>
             </div>
 
             {/* Social Proof */}
-            <div style={{ display: 'flex', gap: '4rem' }}>
+            <div className="social-proof-grid">
               <div>
-                <div style={{ fontSize: '2.25rem', fontWeight: '900' }}>5.000+</div>
-                <div style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: '500' }}>Clientes</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: '900' }}>5.000+</div>
+                <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '500' }}>Clientes</div>
               </div>
               <div>
-                <div style={{ fontSize: '2.25rem', fontWeight: '900' }}>98%</div>
-                <div style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: '500' }}>Aprovação</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: '900' }}>98%</div>
+                <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '500' }}>Aprovação</div>
               </div>
               <div>
-                <div style={{ fontSize: '2.25rem', fontWeight: '900' }}>24h</div>
-                <div style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: '500' }}>Resposta</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: '900' }}>24h</div>
+                <div style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '500' }}>Resposta</div>
               </div>
             </div>
           </motion.div>
@@ -162,52 +206,52 @@ export default function LandingPage() {
               boxShadow: '0 40px 80px -20px rgba(249, 115, 22, 0.4)'
             }}></div>
 
-            {/* Fixed Real-time Notifications - Moved to top-right corner to avoid overlap */}
+            {/* Fixed Real-time Notifications - Adjusted for mobile */}
             <motion.div
               key={lastApproval.name}
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               style={{
                 position: 'fixed',
-                top: '100px', // Below the sticky header
-                right: '40px',
+                top: '80px',
+                right: '20px',
                 background: 'white',
-                padding: '1rem 1.5rem',
-                borderRadius: '1.25rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '1rem',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
+                gap: '0.5rem',
                 zIndex: 200,
                 border: '1px solid #f0fdf4',
-                pointerEvents: 'none' // Don't block clicks
+                pointerEvents: 'none'
               }}
             >
-              <div style={{ width: 36, height: 36, background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}>
-                <CheckCircle2 size={20} />
+              <div style={{ width: 28, height: 28, background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}>
+                <CheckCircle2 size={16} />
               </div>
               <div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0F172A' }}>{lastApproval.amount} Kz</div>
-                <div style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: '700' }}>Crédito para {lastApproval.name}</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0F172A' }}>{lastApproval.amount} Kz</div>
+                <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: '700' }}>Crédito para {lastApproval.name}</div>
               </div>
             </motion.div>
 
-            <div className="card" style={{ padding: '3.5rem', borderRadius: '2.5rem', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.2)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '3rem' }}>
-                <div style={{ width: 56, height: 56, background: '#fff7ed', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <TrendingUp color="var(--primary)" size={32} />
+            <div className="card simulator-card" style={{ boxShadow: '0 30px 60px -15px rgba(0,0,0,0.2)' }}>
+              <div className="simulator-header">
+                <div style={{ width: 48, height: 48, background: '#fff7ed', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TrendingUp color="var(--primary)" size={28} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.5rem', fontWeight: '900' }}>Simulador de Crédito</h3>
-                  <p style={{ fontSize: '0.95rem', color: '#64748b' }}>Calcule o seu empréstimo ideal</p>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '900' }}>Simulador de Crédito</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Calcule o seu empréstimo ideal</p>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '3rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
-                  <span style={{ fontWeight: '700', color: '#0F172A' }}>Valor do empréstimo</span>
-                  <span style={{ fontSize: '3rem', fontWeight: '950', color: '#ea580c', letterSpacing: '-0.02em' }}>
-                    {amount.toLocaleString()} <span style={{ fontSize: '1.25rem', color: '#64748b', fontWeight: '700' }}>Kz</span>
+              <div style={{ marginBottom: '2.5rem' }}>
+                <div className="simulator-value-row">
+                  <span style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.95rem' }}>Valor do empréstimo</span>
+                  <span style={{ fontSize: 'clamp(1.5rem, 5vw, 3rem)', fontWeight: '950', color: '#ea580c', letterSpacing: '-0.02em' }}>
+                    {amount.toLocaleString()} <span style={{ fontSize: '1rem', color: '#64748b', fontWeight: '700' }}>Kz</span>
                   </span>
                 </div>
                 <input
@@ -284,14 +328,14 @@ export default function LandingPage() {
       </section>
 
       {/* Como Funciona Section (Restored to 4-step horizontal) */}
-      <section id="como-funciona" style={{ padding: '8rem 0', background: '#F8FAFC' }}>
+      <section id="como-funciona" style={{ padding: '6rem 0', background: '#F8FAFC' }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '6rem' }}>
-            <h2 style={{ fontSize: '3.5rem', fontWeight: '950', marginBottom: '1.5rem', letterSpacing: '-0.02em', color: '#0F172A' }}>Como Funciona</h2>
-            <p style={{ color: '#64748b', fontSize: '1.25rem', fontWeight: '500' }}>Simples, rápido e transparente</p>
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '950', marginBottom: '1rem', letterSpacing: '-0.02em', color: '#0F172A' }}>Como Funciona</h2>
+            <p style={{ color: '#64748b', fontSize: '1.1rem', fontWeight: '500' }}>Simples, rápido e transparente</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2.5rem' }}>
+          <div className="grid-responsive grid-responsive-2 lg:grid-responsive-4" style={{ gap: '2rem' }}>
             <StepCard number="1" icon={<UserPlus size={32} />} title="Registe-se" text="Crie a sua conta com um código de referência e complete o seu perfil." />
             <StepCard number="2" icon={<FileSearch size={32} />} title="Verificação KYC" text="Envie os seus documentos e complete a verificação facial." />
             <StepCard number="3" icon={<TrendingUp size={32} />} title="Simule o seu crédito" text="Use o nosso simulador para escolher o valor e o prazo ideal." />
@@ -301,14 +345,14 @@ export default function LandingPage() {
       </section>
 
       {/* Benefits Grid Section */}
-      <section id="beneficios" style={{ padding: '10rem 0', background: 'white' }}>
+      <section id="beneficios" style={{ padding: '6rem 0', background: 'white' }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '6rem' }}>
-            <h2 style={{ fontSize: '3.5rem', fontWeight: '950', marginBottom: '1.5rem', color: '#0F172A' }}>Porquê escolher o KwanzaCrédito?</h2>
-            <p style={{ color: '#64748b', fontSize: '1.25rem', fontWeight: '500' }}>Atendimento humanizado e tecnologia de ponta para sua segurança.</p>
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '950', marginBottom: '1rem', color: '#0F172A' }}>Porquê o KwanzaCrédito?</h2>
+            <p style={{ color: '#64748b', fontSize: '1.1rem', fontWeight: '500' }}>Atendimento humanizado e tecnologia de ponta.</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2.5rem' }}>
+          <div className="grid-responsive grid-responsive-2 lg:grid-responsive-3" style={{ gap: '2rem' }}>
             <MockFeature icon={<Clock size={32} />} title="Aprovação rápida" text="Resposta em menos de 24 horas após a análise completa." color="#fff7ed" />
             <MockFeature icon={<Shield size={32} />} title="100% Seguro" text="Os seus dados estão protegidos com criptografia de ponta." color="#f0fdf4" />
             <MockFeature icon={<Star size={32} />} title="Transparente" text="Sem taxas ocultas. Sabe exatamente quanto vai pagar." color="#fefce8" />
@@ -320,16 +364,16 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer style={{ background: '#0F172A', color: 'white', padding: '6rem 0 3rem' }}>
+      <footer style={{ background: '#0F172A', color: 'white', padding: '4rem 0 2rem' }}>
         <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.75rem', fontWeight: '900' }}>
-              <TrendingUp size={32} color="#fb923c" />
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', marginBottom: '3rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.5rem', fontWeight: '900' }}>
+              <TrendingUp size={28} color="#fb923c" />
               <span>Kwanza<span style={{ color: '#fb923c' }}>Crédito</span></span>
             </div>
-            <div style={{ color: '#94a3b8', fontWeight: '500' }}>© 2026 KwanzaCrédito. Todos os direitos reservados.</div>
+            <div style={{ color: '#94a3b8', fontWeight: '500', textAlign: 'center' }}>© 2026 KwanzaCrédito. Todos os direitos reservados.</div>
           </div>
-          <div style={{ textAlign: 'center', borderTop: '1px solid #1e293b', paddingTop: '3rem', color: '#64748b', fontSize: '1rem', fontWeight: '500' }}>
+          <div style={{ textAlign: 'center', borderTop: '1px solid #1e293b', paddingTop: '2rem', color: '#64748b', fontSize: '0.875rem', fontWeight: '500' }}>
             Microcrédito rápido e seguro para o trabalhador angolano
           </div>
         </div>

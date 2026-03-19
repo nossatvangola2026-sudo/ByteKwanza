@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, FileCheck, Landmark, BarChart3, Settings, LogOut, Check, X, AlertCircle, Shield, Bell, CreditCard, Building2, Gavel, Cpu, Palette, Plus, Trash2, Save, Wand2, Loader2, Upload, UserPlus, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Users, FileCheck, Landmark, BarChart3, Settings, LogOut, Check, X, AlertCircle, Shield, Bell, CreditCard, Building2, Gavel, Cpu, Palette, Plus, Trash2, Save, Wand2, Loader2, Upload, UserPlus, ArrowRight, CheckCircle2, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -48,6 +48,7 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('kyc');
     const [activeSubTab, setActiveSubTab] = useState('credit');
     const [loading, setLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [stats, setStats] = useState([
         { label: "Total Emprestado", value: "0 Kz", color: "var(--primary)" },
         { label: "Total Recebido", value: "0 Kz", color: "var(--tertiary)" },
@@ -200,7 +201,7 @@ export default function AdminDashboard() {
             return;
         }
 
-        const { error } = await supabase
+        const { error: supabaseError } = await supabase
             .from('profiles')
             .delete()
             .eq('id', userId);
@@ -223,63 +224,83 @@ export default function AdminDashboard() {
 
     return (
         <>
-            <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-                {/* Sidebar */}
-                <aside style={{ width: '280px', background: '#1e293b', padding: '2rem', color: 'white' }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div style={{ width: 24, height: 24, background: 'var(--gradient-primary)', borderRadius: '50%' }}></div>
-                        Painel<span style={{ color: 'var(--primary)' }}>Admin</span>
+            <div className="dashboard-layout" style={{ background: '#f8fafc' }}>
+            {/* Mobile Header */}
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '64px', background: 'white', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.5rem', zIndex: 60 }} className="lg:hidden">
+                <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: 20, height: 20, background: 'var(--gradient-primary)', borderRadius: '50%' }}></div>
+                    KwanzaCrédito Admin
+                </div>
+                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
+                    {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            </div>
+
+            {/* Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div 
+                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 45, backdropFilter: 'blur(4px)' }} 
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="lg:hidden"
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ background: '#1e293b', border: 'none' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'white' }} className="hidden lg:flex">
+                    <div style={{ width: 24, height: 24, background: 'var(--gradient-primary)', borderRadius: '50%' }}></div>
+                    Painel<span style={{ color: 'var(--primary)' }}>Admin</span>
+                </div>
+
+                <nav style={{ display: 'grid', gap: '0.5rem' }}>
+                    <AdminSidebarItem icon={<BarChart3 size={20} />} label="Visão Geral" onClick={() => { setActiveTab('overview'); setIsSidebarOpen(false); }} active={activeTab === 'overview'} />
+                    <AdminSidebarItem icon={<FileCheck size={20} />} label="Validação KYC" onClick={() => { setActiveTab('kyc'); setIsSidebarOpen(false); }} active={activeTab === 'kyc'} />
+                    <AdminSidebarItem icon={<Landmark size={20} />} label="Gestão de Créditos" onClick={() => { setActiveTab('credits'); setIsSidebarOpen(false); }} active={activeTab === 'credits'} />
+                    <AdminSidebarItem icon={<Users size={20} />} label="Utilizadores" onClick={() => { setActiveTab('users'); setIsSidebarOpen(false); }} active={activeTab === 'users'} />
+                    <AdminSidebarItem icon={<Settings size={20} />} label="Definições" onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }} active={activeTab === 'settings'} />
+                    <AdminSidebarItem icon={<Wand2 size={20} />} label="Regras de Negócio" onClick={() => { setActiveTab('rules'); setIsSidebarOpen(false); }} active={activeTab === 'rules'} />
+                    <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+                        <AdminSidebarItem
+                            icon={<LogOut size={20} />}
+                            label="Terminar Sessão"
+                            color="#ef4444"
+                            onClick={() => handleLogout()}
+                        />
                     </div>
+                </nav>
+            </aside>
 
-                    <nav style={{ display: 'grid', gap: '0.5rem' }}>
-                        <AdminSidebarItem icon={<BarChart3 size={20} />} label="Visão Geral" onClick={() => setActiveTab('overview')} active={activeTab === 'overview'} />
-                        <AdminSidebarItem icon={<FileCheck size={20} />} label="Validação KYC" onClick={() => setActiveTab('kyc')} active={activeTab === 'kyc'} />
-                        <AdminSidebarItem icon={<Landmark size={20} />} label="Gestão de Créditos" onClick={() => setActiveTab('credits')} active={activeTab === 'credits'} />
-                        <AdminSidebarItem icon={<Users size={20} />} label="Utilizadores" onClick={() => setActiveTab('users')} active={activeTab === 'users'} />
-                        <AdminSidebarItem icon={<Settings size={20} />} label="Definições" onClick={() => setActiveTab('settings')} active={activeTab === 'settings'} />
-                        <AdminSidebarItem icon={<Wand2 size={20} />} label="Regras de Negócio" onClick={() => setActiveTab('rules')} active={activeTab === 'rules'} />
-                        <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
-                            <AdminSidebarItem
-                                icon={<LogOut size={20} />}
-                                label="Terminar Sessão"
-                                color="#ef4444"
-                                onClick={() => handleLogout()}
-                            />
-                        </div>
-                    </nav>
-                </aside>
-
-                {/* Main content */}
-                <main style={{ flex: 1, padding: '2rem' }}>
-                    <header style={{ marginBottom: '2rem' }}>
-                        <h2 style={{ fontSize: '1.75rem', color: '#1e293b' }}>Gestão de Operações</h2>
-                        <p style={{ color: '#64748b' }}>Controle de riscos e validação de microcrédito.</p>
-                    </header>
+            {/* Main content */}
+            <main className="dashboard-content" style={{ marginTop: '64px' }}>
+                <header style={{ marginBottom: '2rem' }}>
+                    <h2 style={{ fontSize: '1.75rem', color: '#1e293b' }}>Gestão de Operações</h2>
+                    <p style={{ color: '#64748b' }}>Controle de riscos e validação de microcrédito.</p>
+                </header>
 
                     {/* Financial Overview Card */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div className="stats-grid" style={{ marginBottom: '2rem' }}>
                         {stats.map((stat, i) => (
-                            <div key={i} className="card" style={{ padding: '1.5rem', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-                                <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '0.5rem' }}>{stat.label}</p>
+                            <div key={i} className="card" style={{ padding: '1.5rem', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{stat.label}</p>
                                 <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: stat.color }}>{stat.value}</h3>
                             </div>
                         ))}
                     </div>
 
                     {/* Content Area */}
-                    <div className="card" style={{ padding: '0', overflow: 'hidden', background: 'white' }}>
-                        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                            <h4 style={{ fontSize: '1.125rem' }}>
-                                {activeTab === 'overview' && 'Resumo de Atividades'}
-                                {activeTab === 'kyc' && 'Fila de validação de documentos'}
-                                {activeTab === 'credits' && 'Pedidos de crédito pendentes'}
-                                {activeTab === 'users' && 'Gestão de Utilizadores'}
-                                {activeTab === 'settings' && 'Definições da Plataforma'}
-                                {activeTab === 'rules' && 'Configuração de Regras'}
-                            </h4>
-                        </div>
+                        <div className="table-container">
+                            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+                                <h4 style={{ fontSize: '1.125rem' }}>
+                                    {activeTab === 'overview' && 'Resumo de Atividades'}
+                                    {activeTab === 'kyc' && 'Fila de validação de documentos'}
+                                    {activeTab === 'credits' && 'Pedidos de crédito pendentes'}
+                                    {activeTab === 'users' && 'Gestão de Utilizadores'}
+                                    {activeTab === 'settings' && 'Definições da Plataforma'}
+                                    {activeTab === 'rules' && 'Configuração de Regras'}
+                                </h4>
+                            </div>
 
-                        <div style={{ overflowX: 'auto' }}>
+                            <div style={{ overflowX: 'auto' }}>
                             {activeTab === 'overview' && (
                                 <div style={{ padding: '2rem' }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>

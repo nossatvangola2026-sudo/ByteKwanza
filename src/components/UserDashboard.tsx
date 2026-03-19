@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet, History, Send, FileText, Bell, LogOut, LayoutDashboard, Loader2, Save, AlertTriangle } from "lucide-react";
+import { Wallet, History, Send, FileText, Bell, LogOut, LayoutDashboard, Loader2, Save, AlertTriangle, Menu, X, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,6 +20,7 @@ export default function UserDashboard() {
         fullName: '', phone: '', biNumber: '', employer: '',
         address: '', emergencyContact: '', emergencyPhone: '', monthlySalary: ''
     });
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
@@ -157,17 +158,37 @@ export default function UserDashboard() {
 
     return (
         <>
-            <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f2f5' }}>
+             <div className="dashboard-layout" style={{ background: '#f8fafc' }}>
+                {/* Mobile Header */}
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '64px', background: 'white', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.5rem', zIndex: 60 }} className="lg:hidden">
+                    <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ width: 20, height: 20, background: 'var(--gradient-primary)', borderRadius: '50%' }}></div>
+                        KwanzaCrédito
+                    </div>
+                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
+                        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
+
+                {/* Sidebar Overlay */}
+                {isSidebarOpen && (
+                    <div 
+                        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 45, backdropFilter: 'blur(4px)' }} 
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="lg:hidden"
+                    />
+                )}
+
                 {/* Sidebar */}
-                <aside style={{ width: '280px', background: 'white', padding: '2rem', borderRight: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ padding: '2rem' }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} className="hidden lg:flex">
                         <div style={{ width: 24, height: 24, background: 'var(--gradient-primary)', borderRadius: '50%' }}></div>
                         Kwanza<span style={{ color: 'var(--primary)' }}>Crédito</span>
                     </div>
 
                     <nav style={{ display: 'grid', gap: '0.5rem' }}>
                         <SidebarItem icon={<LayoutDashboard size={20} />} label="Dashboard" active />
-                        <SidebarItem icon={<Send size={20} />} label="Pedir Crédito" onClick={handleRequestCredit} />
+                        <SidebarItem icon={<Send size={20} />} label="Pedir Crédito" onClick={() => { handleRequestCredit(); setIsSidebarOpen(false); }} />
                         <SidebarItem icon={<History size={20} />} label="Histórico" />
                         <SidebarItem icon={<FileText size={20} />} label="Contratos" />
                         <SidebarItem icon={<Bell size={20} />} label="Notificações" />
@@ -183,7 +204,7 @@ export default function UserDashboard() {
                 </aside>
 
                 {/* Main Content */}
-                <main style={{ flex: 1, padding: '2rem' }}>
+                <main className="dashboard-content" style={{ marginTop: '64px' }}>
                     <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <div>
                             <h2 style={{ fontSize: '1.5rem' }}>Olá, {displayName}</h2>
@@ -195,11 +216,11 @@ export default function UserDashboard() {
                     </header>
 
                     {/* Stats Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div className="stats-grid">
                         {stats.map((stat, i) => (
-                            <div key={i} className="card" style={{ padding: '1.5rem' }}>
-                                <p style={{ color: '#666', fontSize: '0.875rem', marginBottom: '0.5rem' }}>{stat.label}</p>
-                                <h3 style={{ fontSize: '1.5rem', color: stat.color }}>{stat.value}</h3>
+                            <div key={i} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '600' }}>{stat.label}</p>
+                                <h3 style={{ fontSize: '1.75rem', color: stat.color, fontWeight: '900' }}>{stat.value}</h3>
                             </div>
                         ))}
                     </div>
@@ -222,39 +243,41 @@ export default function UserDashboard() {
                     </div>
 
                     {/* History Table */}
-                    <div className="card" style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h4 style={{ fontSize: '1.125rem' }}>Últimas atividades</h4>
+                    <div className="table-container">
+                        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+                            <h4 style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>Últimas atividades</h4>
                         </div>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', color: '#666', fontSize: '0.875rem' }}>
-                                    <th style={{ padding: '1rem 0' }}>Data</th>
-                                    <th>Tipo</th>
-                                    <th>Valor</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {credits.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>
-                                            Nenhuma atividade registada.
-                                        </td>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        <th style={{ padding: '1rem 1.5rem' }}>Data</th>
+                                        <th style={{ padding: '1rem 1.5rem' }}>Tipo</th>
+                                        <th style={{ padding: '1rem 1.5rem' }}>Valor</th>
+                                        <th style={{ padding: '1rem 1.5rem' }}>Status</th>
                                     </tr>
-                                ) : (
-                                    credits.map((credit, i) => (
-                                        <ActivityRow
-                                            key={i}
-                                            date={new Date(credit.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            type="Solicitação de Crédito"
-                                            amount={`${Number(credit.amount).toLocaleString()} Kz`}
-                                            status={credit.status === 'approved' ? 'Aprovado' : credit.status === 'rejected' ? 'Rejeitado' : 'Pendente'}
-                                        />
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody style={{ fontSize: '0.875rem' }}>
+                                    {credits.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} style={{ padding: '3rem 1.5rem', textAlign: 'center', color: '#94a3b8' }}>
+                                                Nenhuma atividade registada.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        credits.map((credit, i) => (
+                                            <ActivityRow
+                                                key={i}
+                                                date={new Date(credit.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                type="Solicitação de Crédito"
+                                                amount={`${Number(credit.amount).toLocaleString()} Kz`}
+                                                status={credit.status === 'approved' ? 'Aprovado' : credit.status === 'rejected' ? 'Rejeitado' : 'Pendente'}
+                                            />
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </main>
             </div>

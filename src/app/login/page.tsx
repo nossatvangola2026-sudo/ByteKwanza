@@ -87,13 +87,14 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={{ background: '#F8FAFC', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+        <div style={{ background: '#F8FAFC', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="card"
-                style={{ width: '100%', maxWidth: '450px', padding: '3rem', borderRadius: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.08)' }}
+                className="container"
+                style={{ maxWidth: '480px' }}
             >
+                <div className="card card-auth" style={{ borderRadius: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.08)' }}>
                 <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '1.5rem', fontWeight: '800', marginBottom: '1.5rem' }}>
                         <div style={{ width: 40, height: 40, background: 'orange', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
@@ -133,7 +134,8 @@ export default function LoginPage() {
                                     placeholder="exemplo@email.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    style={{ width: '100%', padding: '1rem 1rem 1rem 3.5rem', borderRadius: '16px', border: '1px solid #E2E8F0', fontSize: '1rem' }}
+                                    className="input-field"
+                                    style={{ paddingLeft: '3.5rem' }}
                                 />
                             </div>
                         </div>
@@ -157,7 +159,8 @@ export default function LoginPage() {
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    style={{ width: '100%', padding: '1rem 1rem 1rem 3.5rem', borderRadius: '16px', border: '1px solid #E2E8F0', fontSize: '1rem' }}
+                                    className="input-field"
+                                    style={{ paddingLeft: '3.5rem' }}
                                 />
                             </div>
                         </div>
@@ -209,6 +212,7 @@ export default function LoginPage() {
 
                 <div style={{ textAlign: 'center', marginTop: '2.5rem', color: '#64748b' }}>
                     Não tem uma conta? <Link href="/register" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>Registe-se aqui</Link>
+                </div>
                 </div>
             </motion.div>
         </div>

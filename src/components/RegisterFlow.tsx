@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2, QrCode, Scan } from "lucide-react";
+import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2, QrCode, Scan, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -142,24 +142,23 @@ function FaceCaptureUI({
         setCapturePhase(1);
         startCamera();
     };
-
     if (capturedImage && capturedImageWithId) {
         return (
-            <div style={{ padding: '1.5rem', border: '1px solid #333', borderRadius: '1rem', background: '#111', textAlign: 'center' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div style={{ borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid #4ade80', position: 'relative' }}>
-                        <img src={capturedImage} alt="Selfie" style={{ width: '100%', display: 'block' }} />
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(74, 222, 128, 0.9)', color: '#000', fontSize: '0.75rem', padding: '0.25rem', fontWeight: 'bold' }}>1. Rosto</div>
+            <div className="card" style={{ padding: '1.5rem', background: '#F8FAFC', textAlign: 'center', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div style={{ borderRadius: '1rem', overflow: 'hidden', border: '2px solid #16a34a', position: 'relative' }}>
+                        <img src={capturedImage} alt="Selfie" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(22, 163, 74, 0.9)', color: 'white', fontSize: '0.75rem', padding: '0.4rem', fontWeight: 'bold' }}>1. Rosto</div>
                     </div>
-                    <div style={{ borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid #eab308', position: 'relative' }}>
-                        <img src={capturedImageWithId} alt="Selfie com BI" style={{ width: '100%', display: 'block' }} />
-                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(234, 179, 8, 0.9)', color: '#000', fontSize: '0.75rem', padding: '0.25rem', fontWeight: 'bold' }}>2. Rosto + BI</div>
+                    <div style={{ borderRadius: '1rem', overflow: 'hidden', border: '2px solid #ea580c', position: 'relative' }}>
+                        <img src={capturedImageWithId} alt="Selfie com BI" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(234, 88, 12, 0.9)', color: 'white', fontSize: '0.75rem', padding: '0.4rem', fontWeight: 'bold' }}>2. Rosto + BI</div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#4ade80', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                    <CheckCircle2 size={24} /> Ambas verificações concluídas
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#16a34a', fontWeight: 'bold', fontSize: '1rem' }}>
+                    <CheckCircle2 size={20} /> Ambas verificações concluídas
                 </div>
-                <button type="button" className="btn" style={{ marginTop: '1.5rem', background: '#333', color: 'white', border: '1px solid #555' }} onClick={retake}>Refazer Captações</button>
+                <button type="button" className="btn btn-outline" style={{ marginTop: '1.25rem', width: '100%' }} onClick={retake}>Refazer Captações</button>
             </div>
         );
     }
@@ -168,22 +167,24 @@ function FaceCaptureUI({
         return (
             <div style={{ position: 'relative', width: '100%', maxWidth: '400px', aspectRatio: '3/4', minHeight: '300px', margin: '0 auto', background: '#000', borderRadius: '1rem', overflow: 'hidden', border: `2px solid ${capturePhase === 1 ? '#4ade80' : '#eab308'}` }}>
                 {capturePhase === 1.5 && (
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, background: 'rgba(10,16,5,0.95)', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                        <CheckCircle2 size={64} color="#4ade80" style={{ marginBottom: '1rem' }} />
-                        <h4 style={{ color: '#4ade80', marginBottom: '0.5rem', fontSize: '1.25rem' }}>1ª Captação Concluída!</h4>
-                        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '2rem', lineHeight: 1.5 }}>
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, background: 'rgba(255,255,255,0.98)', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                        <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }}>
+                            <CheckCircle2 size={56} color="#16a34a" style={{ marginBottom: '1rem' }} />
+                        </motion.div>
+                        <h4 style={{ color: '#0F172A', marginBottom: '0.75rem', fontSize: '1.25rem', fontWeight: '900' }}>1ª Captação Concluída!</h4>
+                        <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '2rem', lineHeight: 1.6 }}>
                             Agora precisa de tirar a última fotografia.<br/><br/>
-                            Pegue no seu <strong>Documento de Identidade Original</strong> e prepare-se para o segurar visível ao lado do seu rosto.
+                            Pegue no seu <strong>Documento de Identidade Original</strong> e segure-o visível ao lado do seu rosto.
                         </p>
-                        <button type="button" className="btn" style={{ background: '#eab308', color: '#000', border: 'none', width: '100%', fontWeight: 'bold' }} onClick={() => setCapturePhase(2)}>
-                            Estou pronto. Ligar câmara
+                        <button type="button" className="btn btn-primary" style={{ width: '100%', fontWeight: 'bold', borderRadius: '12px' }} onClick={() => setCapturePhase(2)}>
+                            Estou pronto <ArrowRight size={18} />
                         </button>
                     </div>
                 )}
 
                 <div style={{ position: 'absolute', top: '1rem', left: 0, right: 0, textAlign: 'center', zIndex: 20 }}>
-                    <span style={{ background: 'rgba(0,0,0,0.7)', color: capturePhase === 1 ? '#4ade80' : '#eab308', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.875rem', fontWeight: 'bold', border: `1px solid ${capturePhase === 1 ? '#4ade80' : '#eab308'}` }}>
-                        {capturePhase === 1 ? '1/2: Apenas o Rosto' : '2/2: Rosto + Documento (BI)'}
+                    <span style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', color: capturePhase === 1 ? '#16a34a' : '#ea580c', padding: '0.5rem 1rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: '800', border: `1px solid ${capturePhase === 1 ? '#16a34a' : '#ea580c'}`, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                        {capturePhase === 1 ? 'PASSO 1/2: APENAS O ROSTO' : 'PASSO 2/2: ROSTO + DOCUMENTO (BI)'}
                     </span>
                 </div>
                 
@@ -194,11 +195,17 @@ function FaceCaptureUI({
                     transform: 'translate(-50%, -50%)',
                     boxShadow: '0 0 0 9999px rgba(0,0,0,0.65)', 
                     borderRadius: '50%',
-                    width: '220px', height: '300px',
-                    border: '2px dashed rgba(255,255,255,0.8)',
+                    width: 'min(240px, 60%)', 
+                    height: 'min(320px, 75%)',
+                    border: '3px solid rgba(255,255,255,0.9)',
                     boxSizing: 'border-box',
-                    pointerEvents: 'none'
-                }}></div>
+                    pointerEvents: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <div style={{ width: '100%', height: '100%', borderRadius: 'inherit', border: '2px solid rgba(255,255,255,0.3)', outline: '2px solid rgba(255,255,255,0.1)' }}></div>
+                </div>
                 
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 
@@ -443,33 +450,35 @@ export default function RegisterFlow() {
     const prev = () => setStep(step - 1);
 
     return (
-        <div className="container section-padding" style={{ maxWidth: '600px' }}>
-            <div className="card glass" style={{ padding: '2rem' }}>
+        <div className="container" style={{ padding: '2rem 1rem', maxWidth: '640px' }}>
+            <div className="card card-auth" style={{ borderRadius: '2rem', boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }}>
                 {/* Progress Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+                <div className="no-scrollbar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2.5rem', overflowX: 'auto', paddingBottom: '1rem', gap: '1rem', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
                     {steps.map((s, i) => (
                         <div key={i} style={{
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '0.5rem',
-                            color: i <= step ? 'var(--primary)' : '#888',
-                            minWidth: '70px'
+                            gap: '0.4rem',
+                            color: i <= step ? 'var(--primary)' : '#94a3b8',
+                            minWidth: '60px',
+                            flexShrink: 0
                         }}>
                             <div style={{
                                 width: '32px',
                                 height: '32px',
-                                borderRadius: '50%',
-                                background: i <= step ? 'var(--gradient-primary)' : 'var(--border)',
-                                color: i <= step ? 'white' : '#888',
+                                borderRadius: '10px',
+                                background: i <= step ? 'var(--gradient-primary)' : '#f1f5f9',
+                                color: i <= step ? 'white' : '#94a3b8',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                transition: 'all 0.3s ease'
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                boxShadow: i === step ? '0 4px 12px rgba(234, 88, 12, 0.2)' : 'none'
                             }}>
                                 {i < step ? <CheckCircle2 size={16} /> : s.icon}
                             </div>
-                            <span style={{ fontSize: '0.75rem', fontWeight: i === step ? 'bold' : 'normal' }}>{s.title}</span>
+                            <span style={{ fontSize: '0.65rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>{s.title}</span>
                         </div>
                     ))}
                 </div>
@@ -739,12 +748,19 @@ export default function RegisterFlow() {
                     </div>
                 )}
 
-                <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+                <div className="auth-buttons" style={{ marginTop: '3rem' }}>
                     {step > 0 && (
-                        <button className="btn btn-outline" style={{ flex: 1 }} onClick={prev}>Voltar</button>
+                        <button onClick={prev} className="btn btn-outline" style={{ flex: 1, padding: '1rem' }}>
+                            Anterior
+                        </button>
                     )}
-                    <button className="btn btn-primary" style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={next} disabled={loading}>
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : (step === steps.length - 1 ? "Finalizar registo" : "Próximo passo")}
+                    <button 
+                        onClick={next} 
+                        disabled={loading}
+                        className="btn btn-primary" 
+                        style={{ flex: 2, padding: '1rem' }}
+                    >
+                        {loading ? <Loader2 className="animate-spin" /> : (step === steps.length - 1 ? "Concluir Registo" : "Próximo Passo")}
                     </button>
                 </div>
             </div>
