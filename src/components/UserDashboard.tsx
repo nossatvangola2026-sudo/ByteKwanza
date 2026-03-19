@@ -5,9 +5,11 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useToast } from "./Toast";
 
 export default function UserDashboard() {
     const router = useRouter();
+    const { success, error, info } = useToast();
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<any>(null);
     const [credits, setCredits] = useState<any[]>([]);
@@ -85,9 +87,9 @@ export default function UserDashboard() {
         });
 
         if (error) {
-            alert("Erro ao enviar solicitação: " + error.message);
+            error("Erro ao enviar solicitação: " + error.message);
         } else {
-            alert(`Solicitação de ${amount} Kz enviada para análise!`);
+            success(`Solicitação de ${amount} Kz enviada para análise!`);
             // Refresh credits list
             const { data } = await supabase
                 .from('credits')
@@ -127,7 +129,7 @@ export default function UserDashboard() {
 
     const handleSaveProfile = async () => {
         if (!profileForm.fullName || !profileForm.biNumber || !profileForm.monthlySalary) {
-            alert('Preencha pelo menos: Nome, Nº BI e Salário.');
+            info('Preencha pelo menos: Nome, Nº BI e Salário.');
             return;
         }
         setSavingProfile(true);
@@ -145,11 +147,11 @@ export default function UserDashboard() {
         }).eq('id', user.id);
         setSavingProfile(false);
         if (error) {
-            alert('Erro ao guardar: ' + error.message);
+            error('Erro ao guardar: ' + error.message);
         } else {
             setShowProfileUpdate(false);
             setProfile({ ...profile, profile_status: 'active' });
-            alert('Perfil actualizado com sucesso!');
+            success('Perfil actualizado com sucesso!');
         }
     };
 

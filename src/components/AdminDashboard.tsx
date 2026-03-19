@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import React from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useToast } from "./Toast";
 
 interface UserProfile {
     role: string;
@@ -43,6 +44,7 @@ function generateReferralCode() {
 }
 
 export default function AdminDashboard() {
+    const { success, error, info } = useToast();
     const [activeTab, setActiveTab] = useState('kyc');
     const [activeSubTab, setActiveSubTab] = useState('credit');
     const [loading, setLoading] = useState(true);
@@ -179,7 +181,7 @@ export default function AdminDashboard() {
 
     const handleAction = async (user: string, action: 'approved' | 'rejected', type: 'kyc' | 'credit') => {
         setAuditLog(prev => [...prev, `${type.toUpperCase()}: ${user} foi ${action === 'approved' ? 'aprovado' : 'rejeitado'}`]);
-        alert(`${user}: ${action === 'approved' ? 'Aprovado' : 'Rejeitado'} com sucesso!`);
+        success(`${user}: ${action === 'approved' ? 'Aprovado' : 'Rejeitado'} com sucesso!`);
 
         if (type === 'kyc') {
             setKycQueue(prev => prev.filter(item => item.name !== user));
@@ -203,10 +205,10 @@ export default function AdminDashboard() {
             .delete()
             .eq('id', userId);
 
-        if (error) {
-            alert('Erro ao excluir utilizador: ' + error.message);
+        if (supabaseError) {
+            error('Erro ao excluir utilizador: ' + supabaseError.message);
         } else {
-            alert('Utilizador excluído com sucesso!');
+            success('Utilizador excluído com sucesso!');
             setUsers(prev => prev.filter(u => u.realId !== userId));
         }
     };
@@ -374,13 +376,13 @@ export default function AdminDashboard() {
                                                     if (!file) return;
                                                     const text = await file.text();
                                                     const lines = text.split('\n').filter((l: string) => l.trim());
-                                                    if (lines.length < 2) { alert('Ficheiro vazio ou sem dados.'); return; }
+                                                    if (lines.length < 2) { info('Ficheiro vazio ou sem dados.'); return; }
                                                     const headers = lines[0].split(',').map((h: string) => h.trim().toLowerCase());
                                                     const nameIdx = headers.findIndex((h: string) => h.includes('nome'));
                                                     const emailIdx = headers.findIndex((h: string) => h.includes('email'));
                                                     const phoneIdx = headers.findIndex((h: string) => h.includes('telem') || h.includes('phone') || h.includes('telefone'));
                                                     if (nameIdx === -1 || emailIdx === -1) {
-                                                        alert('O ficheiro deve ter colunas "Nome" e "Email".');
+                                                        error('O ficheiro deve ter colunas "Nome" e "Email".');
                                                         return;
                                                     }
                                                     let imported = 0;
@@ -400,7 +402,7 @@ export default function AdminDashboard() {
                                                         }, { onConflict: 'email' });
                                                         if (!error) imported++;
                                                     }
-                                                    alert(`${imported} utilizador(es) importado(s) com sucesso!`);
+                                                    success(`${imported} utilizador(es) importado(s) com sucesso!`);
                                                     window.location.reload();
                                                 };
                                                 input.click();
@@ -754,7 +756,7 @@ export default function AdminDashboard() {
                                         )}
 
                                         <div style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
-                                            <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => alert("Definições guardadas com sucesso!")}>
+                                            <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => success("Definições guardadas com sucesso!")}>
                                                 <Save size={18} /> Guardar Alterações
                                             </button>
                                         </div>
@@ -873,9 +875,9 @@ export default function AdminDashboard() {
                                     });
                                     setSavingUser(false);
                                     if (error) {
-                                        alert('Erro: ' + error.message);
+                                        error('Erro: ' + error.message);
                                     } else {
-                                        alert(`${newUserForm.fullName} registado com sucesso!\nCódigo: ${newUserForm.referralCode}`);
+                                        success(`${newUserForm.fullName} registado com sucesso!\nCódigo: ${newUserForm.referralCode}`);
                                         setShowAddUserModal(false);
                                         window.location.reload();
                                     }

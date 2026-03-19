@@ -5,6 +5,7 @@ import { Camera, CreditCard, Users, Briefcase, CheckCircle2, Shield, Loader2, Qr
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useToast } from "./Toast";
 
 const formatPhoneAOA = (val: string) => {
     const d = val.replace(/\D/g, '').substring(0, 9);
@@ -37,6 +38,7 @@ function FaceCaptureUI({
     capturedImage: string | null,
     capturedImageWithId: string | null
 }) {
+    const { error: toastError } = useToast();
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [captureMode, setCaptureMode] = useState<'select' | 'pc' | 'mobile'>('select');
     const [capturePhase, setCapturePhase] = useState<1 | 1.5 | 2>(1);
@@ -52,7 +54,7 @@ function FaceCaptureUI({
             setStream(mediaStream);
         } catch (err) {
             console.error("Erro ao aceder à câmara", err);
-            alert("Não foi possível ligar a câmara. Por favor, permita o acesso bloqueado no seu navegador.");
+            toastError("Não foi possível ligar a câmara. Por favor, permita o acesso bloqueado no seu navegador.");
         }
     };
 

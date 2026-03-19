@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Microcrédito rápido e seguro para o trabalhador angolano.",
 };
 
+import { ToastProvider } from "@/components/Toast";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="pt-PT">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );
