@@ -366,7 +366,6 @@ export default function RegisterFlow() {
                 if (!formData.bank.name) errors.push("Selecione o seu banco na lista.");
                 const ibanClean = formData.bank.iban.replace(/\s/g, "");
                 if (ibanClean.length !== 25 || !ibanClean.startsWith("AO06")) errors.push("O IBAN deve ter 25 caracteres e começar obrigatoriamente por AO06.");
-                if (!formData.bank.accountNumber) errors.push("O número de conta é obrigatório.");
                 if (!formData.bank.holder) errors.push("O nome do titular da conta é obrigatório.");
                 break;
             case 5:
