@@ -16,13 +16,31 @@ export default function LoginPage() {
     const [view, setView] = useState<"login" | "forgot">("login");
     const router = useRouter();
 
+    // Redirecionar se já estiver logado
+    useState(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                if (profile?.role === 'admin') router.push("/admin");
+                else router.push("/dashboard");
+            }
+        };
+        checkSession();
+    });
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError("");
         setMessage("");
 
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
@@ -30,24 +48,21 @@ export default function LoginPage() {
         if (error) {
             setError(error.message === "Invalid login credentials" ? "Credenciais inválidas. Verifique o seu email e password." : error.message);
             setLoading(false);
-        } else {
-            // Check roles and redirect
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (profile?.role === 'admin') {
-                    router.push("/admin");
-                } else {
-                    router.push("/dashboard");
-                }
+        } else if (data.user) {
+            // Check roles and redirect directly from sign-in response
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', data.user.id)
+                .single();
+            
+            if (profile?.role === 'admin') {
+                router.push("/admin");
             } else {
                 router.push("/dashboard");
             }
+        } else {
+            router.push("/dashboard");
         }
     };
 
