@@ -27,7 +27,6 @@ export default function LoginPage() {
                     .single();
                 
                 if (profile?.role === 'admin') {
-                    console.log("Admin detectado no login, redirecionando...");
                     router.push("/admin");
                 }
                 else router.push("/dashboard");

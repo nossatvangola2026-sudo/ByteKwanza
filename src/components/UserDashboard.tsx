@@ -36,10 +36,7 @@ export default function UserDashboard() {
                 .eq('id', user.id)
                 .single();
             
-            console.log("Perfil carregado no dashboard:", profileData?.email, "Role:", profileData?.role);
-            
             if (profileData?.role === 'admin') {
-                console.log("Admin detectado no dashboard, redirecionando para /admin");
                 router.push('/admin');
                 return;
             }
