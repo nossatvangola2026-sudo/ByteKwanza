@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -16,8 +16,7 @@ export default function LoginPage() {
     const [view, setView] = useState<"login" | "forgot">("login");
     const router = useRouter();
 
-    // Redirecionar se já estiver logado
-    useState(() => {
+    useEffect(() => {
         const checkSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
@@ -27,12 +26,15 @@ export default function LoginPage() {
                     .eq('id', session.user.id)
                     .single();
                 
-                if (profile?.role === 'admin') router.push("/admin");
+                if (profile?.role === 'admin') {
+                    console.log("Admin detectado no login, redirecionando...");
+                    router.push("/admin");
+                }
                 else router.push("/dashboard");
             }
         };
         checkSession();
-    });
+    }, [router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
