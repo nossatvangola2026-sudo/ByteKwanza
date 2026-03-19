@@ -13,9 +13,19 @@ const formatPhoneAOA = (val: string) => {
     return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}`;
 };
 
-const formatIBAN = (val: string) => {
-    const raw = val.replace(/[^A-Z0-9]/g, '').substring(0, 25);
-    return raw.match(/.{1,4}/g)?.join(' ') || '';
+const formatIBAN = (value: string) => {
+    const raw = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    
+    if (raw.length === 0) return '';
+    
+    // Retira qualquer tentativa parcial do prefixo para podermos reconstruir corretamente
+    const stripped = raw.replace(/^AO06/, '').replace(/^AO0/, '').replace(/^AO/, '').replace(/^A/, '');
+    
+    // Adiciona o prefixo padrão AO06 obrigatoriamente
+    const output = 'AO06' + stripped;
+    
+    // Limita a 25 caracteres (AO06 + 21 números)
+    return output.substring(0, 25).match(/.{1,4}/g)?.join(' ') || '';
 };
 
 function FaceCaptureUI({ 
@@ -28,11 +38,11 @@ function FaceCaptureUI({
     capturedImageWithId: string | null
 }) {
     const [stream, setStream] = useState<MediaStream | null>(null);
-    const [isScanning, setIsScanning] = useState(false);
     const [captureMode, setCaptureMode] = useState<'select' | 'pc' | 'mobile'>('select');
-    const [capturePhase, setCapturePhase] = useState<1 | 2>(1);
+    const [capturePhase, setCapturePhase] = useState<1 | 1.5 | 2>(1);
     const [tempSelfie, setTempSelfie] = useState<string | null>(null);
     const [countdown, setCountdown] = useState<number | null>(null);
+    const [framingStatus, setFramingStatus] = useState<'waiting' | 'framed'>('waiting');
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -40,9 +50,6 @@ function FaceCaptureUI({
         try {
             const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
             setStream(mediaStream);
-            if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-            }
         } catch (err) {
             console.error("Erro ao aceder à câmara", err);
             alert("Não foi possível ligar a câmara. Por favor, permita o acesso bloqueado no seu navegador.");
@@ -57,37 +64,54 @@ function FaceCaptureUI({
     };
 
     useEffect(() => {
+        if (stream && videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(console.error);
+        }
+    }, [stream]);
+
+    useEffect(() => {
         return () => stopCamera();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        if (!stream || isScanning) {
+        if (!stream || capturePhase === 1.5) {
             setCountdown(null);
             return;
         }
 
-        let count = 4;
-        setCountdown(count);
+        setFramingStatus('waiting');
+        setCountdown(null);
+
+        // Simulando a deteção de rosto em 2 segundos
+        const waitTimer = setTimeout(() => {
+            setFramingStatus('framed');
+            setCountdown(3);
+        }, 2000);
+
+        return () => clearTimeout(waitTimer);
+    }, [stream, capturePhase]);
+
+    useEffect(() => {
+        if (countdown === null || countdown <= 0) return;
 
         const interval = setInterval(() => {
-            count -= 1;
-            if (count > 0) {
-                setCountdown(count);
-            } else {
-                clearInterval(interval);
-                setCountdown(null);
-                capturePhoto();
-            }
+            setCountdown(prev => {
+                if (prev === 1) {
+                    capturePhoto();
+                    return 0;
+                }
+                return (prev || 0) - 1;
+            });
         }, 1000);
 
         return () => clearInterval(interval);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stream, isScanning, capturePhase]);
+    }, [countdown]);
 
     const capturePhoto = () => {
         if (videoRef.current && canvasRef.current) {
-            setIsScanning(true);
             canvasRef.current.width = videoRef.current.videoWidth;
             canvasRef.current.height = videoRef.current.videoHeight;
             const ctx = canvasRef.current.getContext('2d');
@@ -99,17 +123,13 @@ function FaceCaptureUI({
                 ctx.drawImage(videoRef.current, 0, 0);
                 const imageData = canvasRef.current.toDataURL('image/jpeg');
                 
-                // Simulated Liveness / Server AI Validation time
-                setTimeout(() => {
-                    setIsScanning(false);
-                    if (capturePhase === 1) {
-                        setTempSelfie(imageData);
-                        setCapturePhase(2);
-                    } else {
-                        onCapture(tempSelfie, imageData);
-                        stopCamera();
-                    }
-                }, 3000);
+                if (capturePhase === 1) {
+                    setTempSelfie(imageData);
+                    setCapturePhase(1.5);
+                } else if (capturePhase === 2) {
+                    onCapture(tempSelfie, imageData);
+                    stopCamera();
+                }
             }
         }
     };
@@ -137,61 +157,69 @@ function FaceCaptureUI({
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#4ade80', fontWeight: 'bold', fontSize: '1.1rem' }}>
                     <CheckCircle2 size={24} /> Ambas verificações concluídas
                 </div>
-                <button className="btn btn-outline" style={{ marginTop: '1.5rem', borderColor: '#333', color: 'white' }} onClick={retake}>Refazer Captações</button>
+                <button type="button" className="btn" style={{ marginTop: '1.5rem', background: '#333', color: 'white', border: '1px solid #555' }} onClick={retake}>Refazer Captações</button>
             </div>
         );
     }
 
     if (stream) {
         return (
-            <div style={{ position: 'relative', width: '100%', maxWidth: '400px', margin: '0 auto', background: '#000', borderRadius: '1rem', overflow: 'hidden', border: `2px solid ${capturePhase === 1 ? '#4ade80' : '#eab308'}` }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '400px', aspectRatio: '3/4', minHeight: '300px', margin: '0 auto', background: '#000', borderRadius: '1rem', overflow: 'hidden', border: `2px solid ${capturePhase === 1 ? '#4ade80' : '#eab308'}` }}>
+                {capturePhase === 1.5 && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, background: 'rgba(10,16,5,0.95)', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                        <CheckCircle2 size={64} color="#4ade80" style={{ marginBottom: '1rem' }} />
+                        <h4 style={{ color: '#4ade80', marginBottom: '0.5rem', fontSize: '1.25rem' }}>1ª Captação Concluída!</h4>
+                        <p style={{ color: '#9ca3af', fontSize: '0.9rem', marginBottom: '2rem', lineHeight: 1.5 }}>
+                            Agora precisa de tirar a última fotografia.<br/><br/>
+                            Pegue no seu <strong>Documento de Identidade Original</strong> e prepare-se para o segurar visível ao lado do seu rosto.
+                        </p>
+                        <button type="button" className="btn" style={{ background: '#eab308', color: '#000', border: 'none', width: '100%', fontWeight: 'bold' }} onClick={() => setCapturePhase(2)}>
+                            Estou pronto. Ligar câmara
+                        </button>
+                    </div>
+                )}
+
                 <div style={{ position: 'absolute', top: '1rem', left: 0, right: 0, textAlign: 'center', zIndex: 20 }}>
                     <span style={{ background: 'rgba(0,0,0,0.7)', color: capturePhase === 1 ? '#4ade80' : '#eab308', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.875rem', fontWeight: 'bold', border: `1px solid ${capturePhase === 1 ? '#4ade80' : '#eab308'}` }}>
                         {capturePhase === 1 ? '1/2: Apenas o Rosto' : '2/2: Rosto + Documento (BI)'}
                     </span>
                 </div>
                 
-                <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: 'block', transform: 'scaleX(-1)' }} />
+                <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transform: 'scaleX(-1)' }} />
                 
                 <div style={{ 
-                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
-                    boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)', 
+                    position: 'absolute', top: '50%', left: '50%', 
+                    transform: 'translate(-50%, -50%)',
+                    boxShadow: '0 0 0 9999px rgba(0,0,0,0.65)', 
                     borderRadius: '50%',
-                    width: '65%', height: '75%',
-                    margin: 'auto',
+                    width: '220px', height: '300px',
                     border: '2px dashed rgba(255,255,255,0.8)',
                     boxSizing: 'border-box',
                     pointerEvents: 'none'
                 }}></div>
-
-                {isScanning && (
-                    <motion.div 
-                        initial={{ top: '15%' }}
-                        animate={{ top: ['15%', '85%', '15%'] }}
-                        transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                        style={{
-                            position: 'absolute', left: '15%', right: '15%', height: '3px',
-                            background: '#3b82f6', boxShadow: '0 0 15px #3b82f6', zIndex: 10,
-                            pointerEvents: 'none'
-                        }}
-                    />
-                )}
                 
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 
-                <div style={{ position: 'absolute', bottom: '2rem', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 20 }}>
-                     {!isScanning ? (
+                <div style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', zIndex: 20 }}>
+                     {framingStatus === 'waiting' ? (
+                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '0.5rem 1rem', borderRadius: '30px', color: '#eab308', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 'bold', border: '1px solid #eab308' }}>
+                             <Scan size={16} className="animate-spin-slow" /> Olhe para a câmara...
+                         </div>
+                     ) : (
                          countdown !== null && countdown > 0 ? (
-                             <div style={{ background: 'rgba(0,0,0,0.8)', padding: '0.75rem 1.5rem', borderRadius: '30px', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1rem', fontWeight: 'bold', border: '1px solid #4ade80' }}>
-                                 <Scan size={20} className="animate-pulse" /> 
-                                 A detetar rosto... {countdown}s
+                             <div style={{ background: 'rgba(0,0,0,0.8)', padding: '0.5rem 1rem', borderRadius: '30px', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 'bold', border: '1px solid #4ade80' }}>
+                                 <CheckCircle2 size={16} className="animate-pulse" /> Rosto enquadrado! Disparo em {countdown}s
                              </div>
                          ) : null
-                     ) : (
-                         <div style={{ background: 'rgba(0,0,0,0.8)', padding: '0.5rem 1rem', borderRadius: '20px', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
-                             <Loader2 size={16} className="animate-spin" /> {capturePhase === 1 ? 'Analisando Liveness...' : 'Validando Documento + Rosto...'}
-                         </div>
                      )}
+
+                     <button type="button" onClick={capturePhoto} style={{ 
+                         width: '64px', height: '64px', borderRadius: '50%', 
+                         background: 'rgba(255,255,255,0.3)', border: '4px solid white',
+                         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0
+                     }} aria-label="Capturar Manualmente">
+                         <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'white' }}></div>
+                     </button>
                 </div>
             </div>
         );
@@ -520,7 +548,7 @@ export default function RegisterFlow() {
 
                         {step === 2 && (
                             <div className="step-content">
-                                <h3 style={{ marginBottom: '1.5rem' }}>Autenticação Liveness (IA)</h3>
+                                <h3 style={{ marginBottom: '1.5rem' }}>Autenticação Facial</h3>
                                 <FaceCaptureUI 
                                     capturedImage={formData.selfie} 
                                     capturedImageWithId={formData.selfieWithId}
