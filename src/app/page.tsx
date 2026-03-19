@@ -144,7 +144,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section style={{ padding: '4rem 0 6rem' }}>
+      <section style={{ padding: '6rem 0' }} className="mobile-hero-padding">
         <div className="container hero-grid">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -206,33 +206,34 @@ export default function LandingPage() {
               boxShadow: '0 40px 80px -20px rgba(249, 115, 22, 0.4)'
             }}></div>
 
-            {/* Fixed Real-time Notifications - Adjusted for mobile */}
+            {/* Fixed Real-time Notifications - Hidden on mobile to avoid overlap */}
             <motion.div
               key={lastApproval.name}
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
+              className="hidden-mobile"
               style={{
                 position: 'fixed',
-                top: '80px',
-                right: '20px',
+                top: '100px',
+                right: '40px',
                 background: 'white',
-                padding: '0.75rem 1rem',
-                borderRadius: '1rem',
+                padding: '1rem 1.5rem',
+                borderRadius: '1.25rem',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
+                gap: '0.75rem',
                 zIndex: 200,
                 border: '1px solid #f0fdf4',
                 pointerEvents: 'none'
               }}
             >
-              <div style={{ width: 28, height: 28, background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}>
-                <CheckCircle2 size={16} />
+              <div style={{ width: 36, height: 36, background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}>
+                <CheckCircle2 size={20} />
               </div>
               <div>
-                <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0F172A' }}>{lastApproval.amount} Kz</div>
-                <div style={{ fontSize: '0.65rem', color: '#16a34a', fontWeight: '700' }}>Crédito para {lastApproval.name}</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0F172A' }}>{lastApproval.amount} Kz</div>
+                <div style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: '700' }}>Crédito para {lastApproval.name}</div>
               </div>
             </motion.div>
 

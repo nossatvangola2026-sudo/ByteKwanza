@@ -545,9 +545,9 @@ export default function AdminDashboard() {
                             )}
 
                             {activeTab === 'settings' && (
-                                <div style={{ display: 'flex', minHeight: '600px' }}>
+                                <div className="settings-container">
                                     {/* Sub-menu lateral das definições */}
-                                    <div style={{ width: '240px', borderRight: '1px solid var(--border)', padding: '1.5rem', background: '#f1f5f9' }}>
+                                    <div className="settings-sidebar">
                                         <h6 style={{ textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b', marginBottom: '1rem', fontWeight: 'bold' }}>Categorias</h6>
                                         <div style={{ display: 'grid', gap: '0.25rem' }}>
                                             <SettingsSubItem label="Crédito" active={activeSubTab === 'credit'} onClick={() => setActiveSubTab('credit')} icon={<CreditCard size={16} />} />
@@ -568,7 +568,7 @@ export default function AdminDashboard() {
                                     </div>
 
                                     {/* Área de edição de cada sub-tab */}
-                                    <div style={{ flex: 1, padding: '2rem' }}>
+                                    <div className="settings-content">
                                         {activeSubTab === 'credit' && (
                                             <div style={{ maxWidth: '600px' }}>
                                                 <h5 style={{ marginBottom: '1.5rem', fontWeight: 'bold' }}>Definições de Crédito</h5>

@@ -120,10 +120,17 @@ a {
   display: none !important;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .hidden-mobile {
     display: block !important;
   }
+}
+
+.hidden-desktop {
+  display: block !important;
+}
+
+@media (min-width: 1024px) {
   .hidden-desktop {
     display: none !important;
   }
@@ -181,11 +188,16 @@ a {
 }
 
 /* Mobile-friendly spacing */
-@media (max-width: 767px) {
-  h1 { font-size: 2.5rem !important; }
-  h2 { font-size: 2rem !important; }
+@media (max-width: 1023px) {
+  :root {
+    --header-height: 64px;
+    --container-padding: 1.25rem;
+  }
+  h1 { font-size: 2.25rem !important; }
+  h2 { font-size: 1.85rem !important; }
   h3 { font-size: 1.5rem !important; }
   section { padding: 4rem 0 !important; }
+  .mobile-hero-padding { padding-top: 6.5rem !important; }
 }
 
 .card-auth {
@@ -373,5 +385,62 @@ a {
 @media (min-width: 1024px) {
   .social-proof-grid {
     margin-inline: 0;
+  }
+}
+
+/* Settings Area Responsive Adjustment */
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  min-height: auto;
+}
+
+.settings-sidebar {
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+  padding: 1rem;
+  background: #f1f5f9;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-sidebar h6 {
+  display: none;
+}
+
+.settings-sidebar > div {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 0.5rem !important;
+  padding-bottom: 0.5rem;
+}
+
+.settings-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .settings-container {
+    flex-direction: row;
+    min-height: 600px;
+  }
+  .settings-sidebar {
+    width: 240px;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+    white-space: normal;
+    overflow-x: visible;
+  }
+  .settings-sidebar h6 {
+    display: block;
+  }
+  .settings-sidebar > div {
+    display: grid !important;
+    gap: 0.25rem !important;
+    padding-bottom: 0;
+  }
+  .settings-content {
+    padding: 2.5rem;
   }
 }
