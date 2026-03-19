@@ -404,8 +404,8 @@ export default function RegisterFlow() {
                 if (authError) throw authError;
 
                 if (authData.user) {
-                    // 2. Create Profile
-                    const { error: profileError } = await supabase.from('profiles').insert({
+                    // 2. Create/Update Profile
+                    const { error: profileError } = await supabase.from('profiles').upsert({
                         id: authData.user.id,
                         full_name: formData.fullName,
                         email: formData.email,
@@ -415,19 +415,23 @@ export default function RegisterFlow() {
                         iban: formData.bank.iban,
                         account_number: formData.bank.accountNumber,
                         account_holder: formData.bank.holder,
-                        company_name: formData.employment.company,
+                        employer: formData.employment.company, // Align with UserDashboard/DB
                         monthly_salary: parseFloat(formData.employment.salary) || 0,
                         service_years: parseInt(formData.employment.years) || 0,
                         job_title: formData.employment.jobTitle,
-                        family_contacts: formData.familyContacts
-                    });
+                        family_contacts: formData.familyContacts,
+                        profile_status: 'active',
+                        kyc_status: 'pending'
+                    }, { onConflict: 'id' });
 
                     if (profileError) throw profileError;
 
                     router.push('/dashboard');
                 }
-            } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : "Ocorreu um erro inesperado");
+            } catch (err: any) {
+                console.error("Erro completo:", err);
+                const msg = err.message || err.error_description || "Ocorreu um erro inesperado no servidor.";
+                setError(msg);
                 setLoading(false);
             }
         } else {
